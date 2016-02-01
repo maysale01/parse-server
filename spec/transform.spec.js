@@ -1,6 +1,6 @@
 // These tests are unit tests designed to only test transform.js.
 
-var transform = require('../transform');
+var transform               = require('../src/utils/transform');
 
 var dummySchema = {
     data: {},

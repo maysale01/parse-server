@@ -1,11 +1,11 @@
 // These tests check the "find" functionality of the REST API.
-var auth = require('../Auth');
-var cache = require('../cache');
-var Config = require('../Config');
-var rest = require('../rest');
+var cache               = require('../src/utils/cache');
+var rest                = require('../src/utils/rest');
+var Auth                = require('../src/classes/Auth');
+var Config              = require('../src/classes/Config');
 
 var config = new Config('test');
-var nobody = auth.nobody(config);
+var nobody = Auth.nobody(config);
 
 describe('rest query', () => {
   it('basic query', (done) => {

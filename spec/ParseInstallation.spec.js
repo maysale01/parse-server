@@ -1,12 +1,12 @@
 // These tests check the Installations functionality of the REST API.
 // Ported from installation_collection_test.go
 
-var auth = require('../Auth');
-var cache = require('../cache');
-var Config = require('../Config');
-var DatabaseAdapter = require('../DatabaseAdapter');
-var Parse = require('parse/node').Parse;
-var rest = require('../rest');
+var cache               = require('../src/utils/cache');
+var rest                = require('../src/utils/rest');
+var Auth                = require('../src/classes/Auth');
+var Config              = require('../src/classes/Config');
+var DatabaseAdapter     = require('../src/classes/DatabaseAdapter');
+var Parse               = require('parse/node').Parse;
 
 var config = new Config('test');
 var database = DatabaseAdapter.getDatabaseConnection('test');
@@ -20,7 +20,7 @@ describe('Installations', () => {
       'installationId': installId,
       'deviceType': device
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -39,7 +39,7 @@ describe('Installations', () => {
       'deviceToken': t,
       'deviceType': device
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -58,7 +58,7 @@ describe('Installations', () => {
       'installationId': installId,
       'deviceType': device
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -78,7 +78,7 @@ describe('Installations', () => {
       'deviceType': device,
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -102,7 +102,7 @@ describe('Installations', () => {
       'deviceType': device,
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -123,7 +123,7 @@ describe('Installations', () => {
       'deviceType': 'android',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       fail('Should not have been able to create an Installation.');
       done();
@@ -143,7 +143,7 @@ describe('Installations', () => {
       'deviceToken': t,
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       fail('Should not have been able to create an Installation.');
       done();
@@ -159,7 +159,7 @@ describe('Installations', () => {
       'installationId': installId,
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       fail('Should not have been able to create an Installation.');
       done();
@@ -177,7 +177,7 @@ describe('Installations', () => {
       'channels': ['foo', 'bar'],
       'custom': 'allowed'
     };
-  rest.create(config, auth.nobody(config), '_Installation', input)
+  rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -202,7 +202,7 @@ describe('Installations', () => {
     };
     var firstObject;
     var secondObject;
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -211,7 +211,7 @@ describe('Installations', () => {
       delete input.deviceToken;
       delete input.channels;
       input['foo'] = 'bar';
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -242,13 +242,13 @@ describe('Installations', () => {
     };
     var firstObject;
     var secondObject;
-    rest.create(config, auth.nobody(config), '_Installation', input1)
+    rest.create(config, Auth.nobody(config), '_Installation', input1)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
       expect(results.length).toEqual(1);
       firstObject = results[0];
-      return rest.create(config, auth.nobody(config), '_Installation', input2);
+      return rest.create(config, Auth.nobody(config), '_Installation', input2);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -258,7 +258,7 @@ describe('Installations', () => {
       } else {
         secondObject = results[0];
       }
-      return rest.create(config, auth.nobody(config), '_Installation', input3);
+      return rest.create(config, Auth.nobody(config), '_Installation', input3);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -278,13 +278,13 @@ describe('Installations', () => {
       'deviceType': 'ios',
       'deviceToken': t
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       input.installationId = installId2;
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       input.installationId = installId3;
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation',
                      {installationId: installId1}, {});
@@ -308,7 +308,7 @@ describe('Installations', () => {
       'deviceType': 'android',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -317,7 +317,7 @@ describe('Installations', () => {
       var update = {
         'channels': ['baz']
       };
-      return rest.update(config, auth.nobody(config),
+      return rest.update(config, Auth.nobody(config),
                          '_Installation', id, update);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -337,7 +337,7 @@ describe('Installations', () => {
       'deviceType': 'android',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -345,7 +345,7 @@ describe('Installations', () => {
       input = {
         'installationId': installId2
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       fail('Updating the installation should have failed.');
@@ -364,7 +364,7 @@ describe('Installations', () => {
       'deviceType': 'ios',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -372,7 +372,7 @@ describe('Installations', () => {
       input = {
         'deviceToken': b
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       fail('Updating the installation should have failed.');
@@ -392,7 +392,7 @@ describe('Installations', () => {
       'deviceToken': t,
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -402,7 +402,7 @@ describe('Installations', () => {
         'deviceToken': u,
         'deviceType': 'ios'
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -420,7 +420,7 @@ describe('Installations', () => {
       'deviceType': 'android',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -428,7 +428,7 @@ describe('Installations', () => {
       input = {
         'deviceType': 'ios'
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       fail('Should not have been able to update Installation.');
@@ -446,7 +446,7 @@ describe('Installations', () => {
       'deviceType': 'android',
       'channels': ['foo', 'bar']
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -454,7 +454,7 @@ describe('Installations', () => {
       input = {
         'custom': 'allowed'
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -476,13 +476,13 @@ describe('Installations', () => {
     };
     var firstObject;
     var secondObject;
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       input = {
         'installationId': installId2,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation',
                      {installationId: installId1}, {});
@@ -499,7 +499,7 @@ describe('Installations', () => {
         'installationId': installId2,
         'deviceToken': t
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          secondObject._id, input);
     }).then(() => {
       // The first object should have been deleted
@@ -520,11 +520,11 @@ describe('Installations', () => {
       'deviceType': 'ios',
       'appIdentifier': 'foo'
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       input.installationId = installId2;
       input.appIdentifier = 'bar';
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -542,7 +542,7 @@ describe('Installations', () => {
       'installationId': installId,
       'deviceType': 'ios'
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -551,7 +551,7 @@ describe('Installations', () => {
         'deviceToken': t,
         'channels': []
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -571,13 +571,13 @@ describe('Installations', () => {
       'installationId': installId,
       'deviceType': 'ios'
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       input = {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation',
                      {deviceToken: t}, {});
@@ -588,7 +588,7 @@ describe('Installations', () => {
         'installationId': installId,
         'deviceType': 'ios'
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -608,13 +608,13 @@ describe('Installations', () => {
       'installationId': installId,
       'deviceType': 'ios'
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       input = {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation',
                      {deviceToken: t}, {});
@@ -629,7 +629,7 @@ describe('Installations', () => {
           'amount': 1
         }
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          results[0]['_id'], input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
@@ -652,7 +652,7 @@ describe('Installations', () => {
     };
     var installObj;
     var tokenObj;
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -662,7 +662,7 @@ describe('Installations', () => {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation', {deviceToken: t}, {});
     }).then((results) => {
@@ -673,7 +673,7 @@ describe('Installations', () => {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          installObj._id, input);
     }).then(() => {
       return database.mongoFind('_Installation', {_id: tokenObj._id}, {});
@@ -694,7 +694,7 @@ describe('Installations', () => {
     };
     var installObj;
     var tokenObj;
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -704,7 +704,7 @@ describe('Installations', () => {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation', {deviceToken: t}, {});
     }).then((results) => {
@@ -719,7 +719,7 @@ describe('Installations', () => {
           'amount': 1
         }
       };
-      return rest.update(config, auth.nobody(config), '_Installation',
+      return rest.update(config, Auth.nobody(config), '_Installation',
                          installObj._id, input);
     }).then(() => {
       return database.mongoFind('_Installation', {_id: tokenObj._id}, {});
@@ -749,7 +749,7 @@ describe('Installations', () => {
       'deviceToken': t,
       'deviceType': 'ios'
     };
-    rest.create(config, auth.nobody(config), '_Installation', input)
+    rest.create(config, Auth.nobody(config), '_Installation', input)
     .then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {
@@ -759,7 +759,7 @@ describe('Installations', () => {
         'deviceToken': t,
         'deviceType': 'ios'
       };
-      return rest.create(config, auth.nobody(config), '_Installation', input);
+      return rest.create(config, Auth.nobody(config), '_Installation', input);
     }).then(() => {
       return database.mongoFind('_Installation', {}, {});
     }).then((results) => {

@@ -7,5 +7,6 @@ module.exports = {
     push: require('./push'),
     roles: require('./roles'),
     sessions: require('./sessions'),
+    testingRoutes: require('./testingRoutes'),
     users: require('./users')
 };

@@ -83,8 +83,8 @@ function ParseServer(args) {
 
   // TODO: separate this from the regular ParseServer object
   if (process.env.TESTING == 1) {
-    console.log('enabling integration testing-routes');
-    api.use('/', require('./testing-routes').router);
+    console.log('enabling integration testingRoutes');
+    api.use('/', require('../handlers/testingRoutes').router);
   }
 
   api.use(bodyParser.json({ 'type': '*/*' }));

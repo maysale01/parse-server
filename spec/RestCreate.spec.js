@@ -1,18 +1,18 @@
 // These tests check the "create" functionality of the REST API.
-var auth = require('../Auth');
-var cache = require('../cache');
-var Config = require('../Config');
-var DatabaseAdapter = require('../DatabaseAdapter');
-var Parse = require('parse/node').Parse;
-var rest = require('../rest');
-var request = require('request');
+var cache               = require('../src/utils/cache');
+var rest                = require('../src/utils/rest');
+var Auth                = require('../src/classes/Auth');
+var Config              = require('../src/classes/Config');
+var DatabaseAdapter     = require('../src/classes/DatabaseAdapter');
+var Parse               = require('parse/node').Parse;
+var request             = require('request');
 
 var config = new Config('test');
 var database = DatabaseAdapter.getDatabaseConnection('test');
 
 describe('rest create', () => {
   it('handles _id', (done) => {
-    rest.create(config, auth.nobody(config), 'Foo', {}).then(() => {
+    rest.create(config, Auth.nobody(config), 'Foo', {}).then(() => {
       return database.mongoFind('Foo', {});
     }).then((results) => {
       expect(results.length).toEqual(1);
@@ -29,7 +29,7 @@ describe('rest create', () => {
       object: {foo: 'bar'},
       date: Parse._encode(new Date()),
     };
-    rest.create(config, auth.nobody(config), 'MyClass', obj).then(() => {
+    rest.create(config, Auth.nobody(config), 'MyClass', obj).then(() => {
       return database.mongoFind('MyClass', {}, {});
     }).then((results) => {
       expect(results.length).toEqual(1);
@@ -47,7 +47,7 @@ describe('rest create', () => {
       password: 'zxcv',
       foo: 'bar',
     };
-    rest.create(config, auth.nobody(config), '_User', user)
+    rest.create(config, Auth.nobody(config), '_User', user)
       .then((r) => {
         expect(Object.keys(r.response).length).toEqual(3);
         expect(typeof r.response.objectId).toEqual('string');
@@ -66,12 +66,12 @@ describe('rest create', () => {
         }
       }
     };
-    rest.create(config, auth.nobody(config), '_User', data)
+    rest.create(config, Auth.nobody(config), '_User', data)
       .then((r) => {
         expect(typeof r.response.objectId).toEqual('string');
         expect(typeof r.response.createdAt).toEqual('string');
         expect(typeof r.response.sessionToken).toEqual('string');
-        return rest.create(config, auth.nobody(config), '_User', data);
+        return rest.create(config, Auth.nobody(config), '_User', data);
       }).then((r) => {
         expect(typeof r.response.objectId).toEqual('string');
         expect(typeof r.response.createdAt).toEqual('string');
@@ -90,7 +90,7 @@ describe('rest create', () => {
         objectId: 'qwerty'
       }
     };
-    rest.create(config, auth.nobody(config), 'APointerDarkly', obj)
+    rest.create(config, Auth.nobody(config), 'APointerDarkly', obj)
       .then((r) => {
         return database.mongoFind('APointerDarkly', {});
       }).then((results) => {

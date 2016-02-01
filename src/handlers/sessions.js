@@ -1,6 +1,7 @@
 // sessions.js
 var Parse           = require('parse/node').Parse;
 var PromiseRouter   = require('../classes/PromiseRouter');
+var Auth            = require('../classes/Auth');
 var rest            = require('../utils/rest');
 
 var router = new PromiseRouter();

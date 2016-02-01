@@ -1,9 +1,9 @@
 // testing-routes.js
 
-var express = require('express'),
-    cache = require('./cache'),
-    middlewares = require('../middleware'),
-    rack = require('hat').rack();
+var express         = require('express'),
+    cache           = require('../utils/cache'),
+    middlewares     = require('../middlewares'),
+    rack            = require('hat').rack();
 
 var router = express.Router();
 

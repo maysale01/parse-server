@@ -3,13 +3,14 @@
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
 
 var cache = require('../src/utils/cache');
+var path = require('path');
 var DatabaseAdapter = require('../src/classes/DatabaseAdapter');
 var express = require('express');
 var facebook = require('../src/utils/facebook');
 var ParseServer = require('../src/classes/ParseServer');
 
 var databaseURI = process.env.DATABASE_URI;
-var cloudMain = process.env.CLOUD_CODE_MAIN || '../src/cloud/main.js';
+var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
 
 // Set up an API server for testing
 var api = new ParseServer({

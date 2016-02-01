@@ -1,6 +1,6 @@
 // These tests check that the Schema operates correctly.
-var Config = require('../Config');
-var Schema = require('../Schema');
+var Config              = require('../src/classes/Config');
+var Schema              = require('../src/classes/Schema');
 
 var config = new Config('test');
 

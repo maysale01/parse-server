@@ -1,4 +1,4 @@
-var ExportAdapter = require('../ExportAdapter');
+var ExportAdapter = require('../src/adapters/ExportAdapter');
 
 describe('ExportAdapter', () => {
   it('can be constructed', (done) => {

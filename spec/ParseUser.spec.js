@@ -5,8 +5,8 @@
 // Tests that involve revocable sessions.
 // Tests that involve sending password reset emails.
 
-var request = require('request');
-var passwordCrypto = require('../password');
+var request             = require('request');
+var passwordCrypto      = require('../src/utils/password');
 
 describe('Parse.User testing', () => {
   it("user sign up class method", (done) => {
