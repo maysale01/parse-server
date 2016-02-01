@@ -15,7 +15,7 @@
 // TODO: hide all schema logic inside the database adapter.
 
 var Parse = require('parse/node').Parse;
-var transform = require('./transform');
+var transform = require('../utils/transform');
 
 
 // Create a schema from a Mongo collection and the exported schema format.

@@ -1,8 +1,9 @@
 // analytics.js
+var Parse           = require('parse/node').Parse;
 
-var Parse = require('parse/node').Parse,
-    PromiseRouter = require('./PromiseRouter'),
-    rest = require('./rest');
+var PromiseRouter   = require('../classes/PromiseRouter');
+
+var rest            = require('../utils/rest');
 
 var router = new PromiseRouter();
 

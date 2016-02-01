@@ -1,10 +1,11 @@
 // These methods handle the 'classes' routes.
 // Methods of the form 'handleX' return promises and are intended to
 // be used with the PromiseRouter.
+var Parse           = require('parse/node').Parse;
 
-var Parse = require('parse/node').Parse,
-    PromiseRouter = require('./PromiseRouter'),
-    rest = require('./rest');
+var PromiseRouter   = require('../classes/PromiseRouter');
+
+var rest            = require('../utils/rest');
 
 var router = new PromiseRouter();
 
@@ -90,4 +91,3 @@ router.route('DELETE',  '/classes/:className/:objectId', handleDelete);
 router.route('PUT', '/classes/:className/:objectId', handleUpdate);
 
 module.exports = router;
-

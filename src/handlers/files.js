@@ -1,13 +1,14 @@
 // files.js
 
-var bodyParser = require('body-parser'),
-    Config = require('./Config'),
-    express = require('express'),
-    FilesAdapter = require('./FilesAdapter'),
-    middlewares = require('./middlewares.js'),
-    mime = require('mime'),
-    Parse = require('parse/node').Parse,
-    rack = require('hat').rack();
+var express         = require('express'),
+    bodyParser      = require('body-parser'),
+    mime            = require('mime'),
+    Parse           = require('parse/node').Parse,
+    rack            = require('hat').rack();
+
+var Config          = require('../classes/Config'),
+    FilesAdapter    = require('../classes/FilesAdapter'),
+    middlewares     = require('../middlewares');
 
 var router = express.Router();
 

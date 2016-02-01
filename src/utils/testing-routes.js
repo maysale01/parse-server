@@ -2,7 +2,7 @@
 
 var express = require('express'),
     cache = require('./cache'),
-    middlewares = require('./middlewares'),
+    middlewares = require('../middleware'),
     rack = require('hat').rack();
 
 var router = express.Router();

@@ -1,16 +1,17 @@
-// ParseServer - open-source compatible API Server for Parse apps
 
-var batch = require('./batch'),
-    bodyParser = require('body-parser'),
-    cache = require('./cache'),
-    DatabaseAdapter = require('./DatabaseAdapter'),
-    express = require('express'),
-    FilesAdapter = require('./FilesAdapter'),
-    middlewares = require('./middlewares'),
-    multer = require('multer'),
-    Parse = require('parse/node').Parse,
-    PromiseRouter = require('./PromiseRouter'),
-    request = require('request');
+/* Externals */
+var express             = require('express'),
+    multer              = require('multer'),
+    request             = require('request'),
+    bodyParser          = require('body-parser'),
+    Parse               = require('parse/node').Parse;
+
+var batch               = require('../utils/batch'),
+    cache               = require('../utils/cache'),
+    middlewares         = require('../middlewares'),
+    DatabaseAdapter     = require('./DatabaseAdapter'),
+    FilesAdapter        = require('./FilesAdapter'),
+    PromiseRouter       = require('./PromiseRouter');
 
 // Mutate the Parse object to add the Cloud Code handlers
 addParseCloud();
@@ -78,7 +79,7 @@ function ParseServer(args) {
   var api = express();
 
   // File handling needs to be before default middlewares are applied
-  api.use('/', require('./files').router);
+  api.use('/', require('../handlers/files').router);
 
   // TODO: separate this from the regular ParseServer object
   if (process.env.TESTING == 1) {
@@ -93,14 +94,14 @@ function ParseServer(args) {
 
   var router = new PromiseRouter();
 
-  router.merge(require('./classes'));
-  router.merge(require('./users'));
-  router.merge(require('./sessions'));
-  router.merge(require('./roles'));
-  router.merge(require('./analytics'));
-  router.merge(require('./push'));
-  router.merge(require('./installations'));
-  router.merge(require('./functions'));
+  router.merge(require('../handlers/classes'));
+  router.merge(require('../handlers/users'));
+  router.merge(require('../handlers/sessions'));
+  router.merge(require('../handlers/roles'));
+  router.merge(require('../handlers/analytics'));
+  router.merge(require('../handlers/push'));
+  router.merge(require('../handlers/installations'));
+  router.merge(require('../handlers/functions'));
 
   batch.mountOnto(router);
 
@@ -178,6 +179,4 @@ function getClassName(parseClass) {
   return parseClass;
 }
 
-module.exports = {
-  ParseServer: ParseServer
-};
+module.exports = ParseServer;

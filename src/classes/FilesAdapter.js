@@ -11,7 +11,7 @@
 // and for the API server to be using the ExportAdapter
 // database adapter.
 
-var GridStoreAdapter = require('./GridStoreAdapter');
+var GridStoreAdapter = require('../adapters/GridStoreAdapter');
 
 var adapter = GridStoreAdapter;
 

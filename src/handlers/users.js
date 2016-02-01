@@ -1,17 +1,18 @@
 // These methods handle the User-related routes.
 
-var mongodb = require('mongodb');
-var Parse = require('parse/node').Parse;
-var rack = require('hat').rack();
+var mongodb         = require('mongodb');
+var Parse           = require('parse/node').Parse;
+var rack            = require('hat').rack();
 
-var Auth = require('./Auth');
-var passwordCrypto = require('./password');
-var facebook = require('./facebook');
-var PromiseRouter = require('./PromiseRouter');
-var rest = require('./rest');
-var RestWrite = require('./RestWrite');
+var Auth            = require('../classes/Auth');
+var PromiseRouter   = require('../classes/PromiseRouter');
+var RestWrite       = require('../classes/RestWrite');
 
-var router = new PromiseRouter();
+var passwordCrypto  = require('../utils/password');
+var facebook        = require('../utils/facebook');
+var rest            = require('../utils/rest');
+
+var router  = new PromiseRouter();
 
 // Returns a promise for a {status, response, location} object.
 function handleCreate(req) {
@@ -72,11 +73,11 @@ function handleLogIn(req) {
         restricted: false,
         expiresAt: Parse._encode(expiresAt).iso
       };
-      
+
       if (req.info.installationId) {
         sessionData.installationId = req.info.installationId
       }
-      
+
       var create = new RestWrite(req.config, Auth.master(req.config),
                                  '_Session', null, sessionData);
       return create.execute();

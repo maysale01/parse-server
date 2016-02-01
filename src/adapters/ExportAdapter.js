@@ -4,9 +4,8 @@
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var Parse = require('parse/node').Parse;
-
-var Schema = require('./Schema');
-var transform = require('./transform');
+var Schema = require('../classes/Schema');
+var transform = require('../utils/transform');
 
 // options can contain:
 //   collectionPrefix: the string to put in front of every collection name.

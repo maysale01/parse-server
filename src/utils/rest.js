@@ -10,9 +10,10 @@
 var Parse = require('parse/node').Parse;
 
 var cache = require('./cache');
-var RestQuery = require('./RestQuery');
-var RestWrite = require('./RestWrite');
 var triggers = require('./triggers');
+
+var RestQuery = require('../classes/RestQuery');
+var RestWrite = require('../classes/RestWrite');
 
 // Returns a promise for an object with optional keys 'results' and 'count'.
 function find(config, auth, className, restWhere, restOptions) {

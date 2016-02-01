@@ -14,10 +14,10 @@
 //
 // Default is ExportAdapter, which uses mongo.
 
-var ExportAdapter = require('./ExportAdapter');
+var ExportAdapter = require('../adapters/ExportAdapter');
 
 var adapter = ExportAdapter;
-var cache = require('./cache');
+var cache = require('../utils/cache');
 var dbConnections = {};
 var databaseURI = 'mongodb://localhost:27017/parse';
 var appDatabaseURIs = {};

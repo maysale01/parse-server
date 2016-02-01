@@ -1,8 +1,9 @@
 var Parse = require('parse/node').Parse;
 
-var auth = require('./Auth');
-var cache = require('./cache');
-var Config = require('./Config');
+var Auth        = require('../classes/Auth'),
+    Config      = require('../classes/Config');
+
+var cache = require('../utils/cache');
 
 // Checks that the request is authorized for this app and checks user
 // auth too.
@@ -85,7 +86,7 @@ function handleParseHeaders(req, res, next) {
   var isMaster = (info.masterKey === req.config.masterKey);
 
   if (isMaster) {
-    req.auth = new auth.Auth(req.config, true);
+    req.auth = new Auth.Auth(req.config, true);
     next();
     return;
   }
@@ -110,12 +111,12 @@ function handleParseHeaders(req, res, next) {
   }
 
   if (!info.sessionToken) {
-    req.auth = new auth.Auth(req.config, false);
+    req.auth = new Auth.Auth(req.config, false);
     next();
     return;
   }
 
-  return auth.getAuthForSessionToken(
+  return Auth.getAuthForSessionToken(
     req.config, info.sessionToken).then((auth) => {
       if (auth) {
         req.auth = auth;
@@ -129,64 +130,9 @@ function handleParseHeaders(req, res, next) {
 
 }
 
-var allowCrossDomain = function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', '*');
-
-  // intercept OPTIONS method
-  if ('OPTIONS' == req.method) {
-    res.send(200);
-  }
-  else {
-    next();
-  }
-};
-
-var allowMethodOverride = function(req, res, next) {
-  if (req.method === 'POST' && req.body._method) {
-    req.originalMethod = req.method;
-    req.method = req.body._method;
-    delete req.body._method;
-  }
-  next();
-};
-
-var handleParseErrors = function(err, req, res, next) {
-  if (err instanceof Parse.Error) {
-    var httpStatus;
-
-    // TODO: fill out this mapping
-    switch (err.code) {
-    case Parse.Error.INTERNAL_SERVER_ERROR:
-      httpStatus = 500;
-      break;
-    case Parse.Error.OBJECT_NOT_FOUND:
-      httpStatus = 404;
-      break;
-    default:
-      httpStatus = 400;
-    }
-
-    res.status(httpStatus);
-    res.json({code: err.code, error: err.message});
-  } else {
-    console.log('Uncaught internal server error.', err, err.stack);
-    res.status(500);
-    res.json({code: Parse.Error.INTERNAL_SERVER_ERROR,
-              message: 'Internal server error.'});
-  }
-};
-
 function invalidRequest(req, res) {
   res.status(403);
   res.end('{"error":"unauthorized"}');
 }
 
-
-module.exports = {
-  allowCrossDomain: allowCrossDomain,
-  allowMethodOverride: allowMethodOverride,
-  handleParseErrors: handleParseErrors,
-  handleParseHeaders: handleParseHeaders
-};
+module.exports = handleParseHeaders;

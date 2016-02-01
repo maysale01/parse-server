@@ -1,9 +1,7 @@
 // functions.js
-
-var express = require('express'),
-    Parse = require('parse/node').Parse,
-    PromiseRouter = require('./PromiseRouter'),
-    rest = require('./rest');
+var Parse           = require('parse/node').Parse;
+var PromiseRouter   = require('../classes/PromiseRouter');
+var rest            = require('../utils/rest');
 
 var router = new PromiseRouter();
 

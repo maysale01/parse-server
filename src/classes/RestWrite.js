@@ -2,17 +2,17 @@
 // that writes to the database.
 // This could be either a "create" or an "update".
 
-var crypto = require('crypto');
-var deepcopy = require('deepcopy');
-var rack = require('hat').rack();
+var crypto          = require('crypto');
+var deepcopy        = require('deepcopy');
+var rack            = require('hat').rack();
+var Parse           = require('parse/node');
 
-var Auth = require('./Auth');
-var cache = require('./cache');
-var Config = require('./Config');
-var passwordCrypto = require('./password');
-var facebook = require('./facebook');
-var Parse = require('parse/node');
-var triggers = require('./triggers');
+var Auth            = require('./Auth');
+var Config          = require('./Config');
+var cache           = require('../utils/cache');
+var passwordCrypto  = require('../utils/password');
+var facebook        = require('../utils/facebook');
+var triggers        = require('../utils/triggers');
 
 // query and data are both provided in REST API format. So data
 // types are encoded by plain old objects.
