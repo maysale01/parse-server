@@ -26,7 +26,8 @@
     "jasmine-node": "^1.14.5"
   },
   "scripts": {
-    "test": "TESTING=1 ./node_modules/.bin/jasmine-node --verbose --junitreport --noColor spec"
+    "test": "TESTING=1 ./node_modules/.bin/jasmine-node spec",
+    "prepublish": "npm run test"
   },
   "engines": {
     "node": ">=4.1"
