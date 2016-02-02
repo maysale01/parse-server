@@ -1,12 +1,11 @@
-module.exports = {
-    analytics: require('./analytics'),
-    classes: require('./classes'),
-    files: require('./files'),
-    functions: require('./functions'),
-    installations: require('./installations'),
-    push: require('./push'),
-    roles: require('./roles'),
-    sessions: require('./sessions'),
-    testingRoutes: require('./testingRoutes'),
-    users: require('./users')
-};
+export { default as analytics } from './analytics';
+export { default as batch } from './batch';
+export { default as classes } from './classes';
+export { default as files } from './files';
+export { default as functions } from './functions';
+export { default as installations } from './installations';
+export { default as push } from './push';
+export { default as roles } from './roles';
+export { default as sessions } from './sessions';
+export { default as testingRoutes } from './testingRoutes';
+export { default as users } from './users';

@@ -5,71 +5,54 @@ import request          from 'request';
 import bodyParser       from 'body-parser';
 import { Parse }        from 'parse/node';
 
-import { batch, cache, addParseCloud } from './utils';
+import { addParseCloud } from './utils';
 import * as middlewares from './middlewares';
 import * as handlers from './handlers';
-import { DatabaseAdapter, FilesAdapter, PromiseRouter } from './classes';
+import { 
+    PromiseRouter, 
+    ParseApp, 
+    ParseServer
+} from './classes';
 
 // This app serves the Parse API directly.
 // It's the equivalent of https://api.parse.com/1 in the hosted Parse API.
 
 addParseCloud();
 
-export function initParseServer(args) {
+export function initParseServer(args = {}) {
 
-    if (!args.appId || !args.masterKey) {
-        throw 'You must provide an appId and masterKey!';
-    }
+    const server = new ParseServer(args);
 
-    if (args.databaseAdapter) {
-        DatabaseAdapter.setAdapter(args.databaseAdapter);
-    }
-    if (args.filesAdapter) {
-        FilesAdapter.setAdapter(args.filesAdapter);
-    }
-    if (args.databaseURI) {
-        DatabaseAdapter.setAppDatabaseURI(args.appId, args.databaseURI);
-    }
-    if (args.cloud) {
-        addParseCloud();
-        require(args.cloud);
-    }
-
-    cache.apps[args.appId] = {
-        masterKey: args.masterKey,
-        collectionPrefix: args.collectionPrefix || '',
-        clientKey: args.clientKey || '',
-        javascriptKey: args.javascriptKey || '',
-        dotNetKey: args.dotNetKey || '',
-        restAPIKey: args.restAPIKey || '',
-        fileKey: args.fileKey || 'invalid-file-key',
-        facebookAppIds: args.facebookAppIds || []
-    };
-
-  // To maintain compatibility. TODO: Remove in v2.1
+    // TODO: Make this handle multiple apps passed in via args.apps
+    let newParseApp = new ParseApp(args);
+    
+    // To maintain compatibility. TODO: Remove in v2.1
     if (process.env.FACEBOOK_APP_ID) {
-        cache.apps[args.appId]['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
+        newParseApp['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
     }
 
-  // Initialize the node client SDK automatically
+    server.registerApp(newParseApp.id, newParseApp);
+
+    // TODO: Move this to the ParseApp class and scope the global for each application
+    // Initialize the node client SDK automatically
     Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
 
-    const api = express();
+    const app = express();
     const router = new PromiseRouter();
 
-  // File handling needs to be before default middlewares are applied
-    api.use('/', handlers.files.router);
+    // File handling needs to be before default middlewares are applied
+    app.use('/', handlers.files);
 
-  // TODO: separate this from the regular ParseServer object
+    // TODO: separate this from the regular ParseServer object
     if (process.env.TESTING == 1) {
         console.log('enabling integration testingRoutes');
-        api.use('/', handlers.testingRoutes.router);
+        app.use('/', handlers.testingRoutes.router);
     }
 
-    api.use(bodyParser.json({ 'type': '*/*' }));
-    api.use(middlewares.allowCrossDomain);
-    api.use(middlewares.allowMethodOverride);
-    api.use(middlewares.handleParseHeaders);
+    app.use(bodyParser.json({ 'type': '*/*' }));
+    app.use(middlewares.allowCrossDomain);
+    app.use(middlewares.allowMethodOverride);
+    app.use(middlewares.handleParseHeaders);
 
     router.merge(handlers['classes']);
     router.merge(handlers['users']);
@@ -80,13 +63,27 @@ export function initParseServer(args) {
     router.merge(handlers['installations']);
     router.merge(handlers['functions']);
 
-    batch.mountOnto(router);
+    // Bind the router as the lexical scope so we can call the match method
+    router.route('POST', '/batch', handlers['batch'].bind(router));
 
-    router.mountOnto(api);
+    router.mountOnto(app);
 
-    api.use(middlewares.handleParseErrors);
+    app.use(middlewares.handleParseErrors);
 
-    return api;
+    // Allow access to the server and apps
+    app.use(function(req, res, next) {
+        req.Parse = {
+            Server: server
+        };
+
+        next();
+    });
+
+    app.set('Parse', {
+        Server: server
+    });
+
+    return app;
 
 }
 

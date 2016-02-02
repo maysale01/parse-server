@@ -1,6 +1,6 @@
-var Parse = require('parse/node').Parse;
+import { Parse } from 'parse/node';
 
-var handleParseErrors = function(err, req, res, next) {
+export default function handleParseErrors(err, req, res, next) {
     if (err instanceof Parse.Error) {
         var httpStatus;
 
@@ -25,5 +25,3 @@ var handleParseErrors = function(err, req, res, next) {
               message: 'Internal server error.'});
     }
 };
-
-module.exports = handleParseErrors;

@@ -2,9 +2,7 @@
 // Methods of the form 'handleX' return promises and are intended to
 // be used with the PromiseRouter.
 var Parse           = require('parse/node').Parse;
-
 var PromiseRouter   = require('../classes/PromiseRouter');
-
 var rest            = require('../utils/rest');
 
 var router = new PromiseRouter();

@@ -1,4 +1,4 @@
-var allowMethodOverride = function(req, res, next) {
+export default function allowMethodOverride(req, res, next) {
     if (req.method === 'POST' && req.body._method) {
         req.originalMethod = req.method;
         req.method = req.body._method;
@@ -6,5 +6,3 @@ var allowMethodOverride = function(req, res, next) {
     }
     next();
 };
-
-module.exports = allowMethodOverride;

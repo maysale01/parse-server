@@ -7,17 +7,14 @@ var cache               = require(path.resolve('src/utils/cache'));
 var rest                = require(path.resolve('src/utils/rest'));
 var Auth                = require(path.resolve('src/classes/Auth'));
 var Config              = require(path.resolve('src/classes/Config'));
-var DatabaseAdapter     = require(path.resolve('src/classes/DatabaseAdapter'));
 var Parse               = require('parse/node').Parse;
 var request             = require('request');
-
-var config = new Config('test');
-var database = DatabaseAdapter.getDatabaseConnection('test');
+var config              = new Config('test');
 
 describe('rest create', () => {
   it('handles _id', (done) => {
     rest.create(config, Auth.nobody(config), 'Foo', {}).then(() => {
-      return database.mongoFind('Foo', {});
+      return DatabaseAdapter.mongoFind('Foo', {});
     }).then((results) => {
       expect(results.length).toEqual(1);
       var obj = results[0];

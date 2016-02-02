@@ -1,7 +1,6 @@
 // A bunch of different tests are in here - it isn't very thematic.
 // It would probably be better to refactor them into different files.
 var path = require('path');
-var DatabaseAdapter = require(path.resolve('src/classes/DatabaseAdapter'));
 var request = require('request');
 
 describe('miscellaneous', function() {

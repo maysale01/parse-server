@@ -1,10 +1,12 @@
-module.exports = {
-    Auth: require('./Auth'),
-    Config: require('./Config'),
-    DatabaseAdapter: require('./DatabaseAdapter'),
-    FilesAdapter: require('./FilesAdapter'),
-    PromiseRouter: require('./PromiseRouter'),
-    RestQuery: require('./RestQuery'),
-    RestWrite: require('./RestWrite'),
-    Schema: require('./Schema'),
-};
+export { default as Auth } from './Auth';
+export { default as Config } from './Config';
+export { default as DatabaseProvider } from './DatabaseProvider';
+export { default as FilesProvider } from './FilesProvider';
+export { default as CacheProvider } from './CacheProvider';
+export { default as PromiseRouter } from './PromiseRouter';
+export { default as RestQuery } from './RestQuery';
+export { default as RestWrite } from './RestWrite';
+export { default as Schema } from './Schema';
+export { default as ParseServer } from './ParseServer';
+export { default as ParseApp } from './ParseApp';
+export { default as MemoryCache } from './MemoryCache';

@@ -1,6 +1,4 @@
-module.exports = {
-    allowCrossDomain: require('./allowCrossDomain'),
-    allowMethodOverride: require('./allowMethodOverride'),
-    handleParseErrors: require('./handleParseErrors'),
-    handleParseHeaders: require('./handleParseHeaders')
-};
+export { default as allowCrossDomain } from './allowCrossDomain';
+export { default as allowMethodOverride } from './allowMethodOverride';
+export { default as handleParseErrors } from './handleParseErrors';
+export { default as handleParseHeaders } from './handleParseHeaders';

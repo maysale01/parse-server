@@ -1,40 +1,40 @@
 // Sets up a Parse API server for testing.
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 2500;
-var path = require('path');
 
-var express = require('express');
+import path from 'path';
+import express from 'express';
 
-var cache = require(path.resolve('src/utils/cache'));
-var facebook = require(path.resolve('src/utils/facebook'));
-var DatabaseAdapter = require(path.resolve('src/classes/DatabaseAdapter'));
-var ExportAdapter = require(path.resolve('src/adapters/ExportAdapter'));
-var ParseServer = require(path.resolve('src/index')).ParseServer;
+import { facebook } from '../../src/utils';
+import { ParseServer } from '../../src';
 
-var databaseURI = process.env.DATABASE_URI;
-var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
+let databaseURI = process.env.DATABASE_URI;
+let cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
 
 // Set up an API server for testing
-var api = new ParseServer({
-  databaseURI: databaseURI,
-  cloud: cloudMain,
-  appId: 'test',
-  javascriptKey: 'test',
-  dotNetKey: 'windows',
-  clientKey: 'client',
-  restAPIKey: 'rest',
-  masterKey: 'test',
-  collectionPrefix: 'test_',
-  fileKey: 'test'
+let app = new ParseServer({
+    databaseURI: databaseURI,
+    cloud: cloudMain,
+    appId: 'test',
+    javascriptKey: 'test',
+    dotNetKey: 'windows',
+    clientKey: 'client',
+    restAPIKey: 'rest',
+    masterKey: 'test',
+    collectionPrefix: 'test_',
+    fileKey: 'test'
 });
 
-var app = express();
-app.use('/1', api);
-var port = 8378;
-var server = app.listen(port);
+const DatabaseProvider = app.get('Parse').Server.getDatabaseProvider();
+const DatabaseAdapter = DatabaseProvider.getDatabaseConnection('test', 'test_');
+
+let testApp = express();
+let port = 8378;
+testApp.use('/1', app);
+let testServer = testApp.listen(port);
 
 // Set up a Parse client to talk to our test API server
-var Parse = require('parse/node');
+let Parse = require('parse/node');
 Parse.serverURL = 'http://localhost:' + port + '/1';
 
 // This is needed because we ported a bunch of tests from the non-A+ way.
@@ -60,27 +60,27 @@ afterEach(function(done) {
   });
 });
 
-var TestObject = Parse.Object.extend({
+let TestObject = Parse.Object.extend({
   className: "TestObject"
 });
-var Item = Parse.Object.extend({
+let Item = Parse.Object.extend({
   className: "Item"
 });
-var Container = Parse.Object.extend({
+let Container = Parse.Object.extend({
   className: "Container"
 });
 
 // Convenience method to create a new TestObject with a callback
 function create(options, callback) {
-  var t = new TestObject(options);
+  let t = new TestObject(options);
   t.save(null, { success: callback });
 }
 
 function createTestUser(success, error) {
-  var user = new Parse.User();
+  let user = new Parse.User();
   user.set('username', 'test');
   user.set('password', 'moon-y');
-  var promise = user.signUp();
+  let promise = user.signUp();
   if (success || error) {
     promise.then(function(user) {
       if (success) {
@@ -155,8 +155,8 @@ function normalize(obj) {
   if (obj instanceof Array) {
     return '[' + obj.map(normalize).join(', ') + ']';
   }
-  var answer = '{';
-  for (var key of Object.keys(obj).sort()) {
+  let answer = '{';
+  for (let key of Object.keys(obj).sort()) {
     answer += key + ': ';
     answer += normalize(obj[key]);
     answer += ', ';
@@ -171,8 +171,8 @@ function jequal(o1, o2) {
 }
 
 function range(n) {
-  var answer = [];
-  for (var i = 0; i < n; i++) {
+  let answer = [];
+  for (let i = 0; i < n; i++) {
     answer.push(i);
   }
   return answer;
@@ -194,12 +194,13 @@ function mockFacebook() {
 }
 
 function clearData() {
-  var promises = [];
-  for (var conn in DatabaseAdapter.dbConnections) {
-    promises.push(DatabaseAdapter.dbConnections[conn].deleteEverything());
-  }
-  return Promise.all(promises);
+    let promises = [];
+    for (let conn in DatabaseAdapter.dbConnections) {
+        promises.push(DatabaseAdapter.dbConnections[conn].deleteEverything());
+    }
+    return Promise.all(promises);
 }
+
 
 // This is polluting, but, it makes it way easier to directly port old tests.
 global.Parse = Parse;
@@ -218,3 +219,5 @@ global.expectError = expectError;
 global.arrayContains = arrayContains;
 global.jequal = jequal;
 global.range = range;
+global.DatabaseProvider = DatabaseProvider;
+global.DatabaseAdapter = DatabaseAdapter;

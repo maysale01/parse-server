@@ -3,7 +3,6 @@
 // mount is the URL for the root of the API; includes http, domain, etc.
 function Config(applicationId, mount) {
     var cache = require('../utils/cache');
-    var DatabaseAdapter = require('./DatabaseAdapter');
 
     var cacheInfo = cache.apps[applicationId];
     this.valid = !!cacheInfo;
@@ -13,7 +12,7 @@ function Config(applicationId, mount) {
 
     this.applicationId = applicationId;
     this.collectionPrefix = cacheInfo.collectionPrefix || '';
-    this.database = DatabaseAdapter.getDatabaseConnection(applicationId);
+    this.database = DatabaseProvider.getDatabaseConnection(applicationId, this.collectionPrefix);
     this.masterKey = cacheInfo.masterKey;
     this.clientKey = cacheInfo.clientKey;
     this.javascriptKey = cacheInfo.javascriptKey;
