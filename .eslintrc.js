@@ -1,5 +1,7 @@
 module.exports = {
+    "parser": "babel-eslint",
     "rules": {
+        "strict": 0,
         "indent": [
             2,
             4

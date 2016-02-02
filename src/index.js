@@ -1,9 +1,16 @@
 // ParseServer - open-source compatible API Server for Parse apps
-module.exports = {
-    utils: require('./utils'),
-    handlers: require('./handlers'),
-    middlewares: require('./middlewares'),
-    adapters: require('./adapters'),
-    classes: require('./classes'),
-    ParseServer: require('./server')
-};
+
+import * as utils from './utils';
+import * as handlers from './handlers';
+import * as middlewares from './middlewares';
+import * as adapters from './adapters';
+import * as classes from './classes';
+
+export const Utils = utils;
+export const Handlers = handlers;
+export const Middlewares = Middlewares;
+export const Adapters = adapters;
+export const Classes = classes;
+
+// Backwards compatibility
+export { default as ParseServer } from './server';

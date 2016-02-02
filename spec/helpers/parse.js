@@ -10,7 +10,7 @@ var cache = require(path.resolve(projectRoot, 'src/utils/cache'));
 var facebook = require(path.resolve(projectRoot, 'src/utils/facebook'));
 var DatabaseAdapter = require(path.resolve(projectRoot, 'src/classes/DatabaseAdapter'));
 var ExportAdapter = require(path.resolve(projectRoot, 'src/adapters/ExportAdapter'));
-var ParseServer = require(path.resolve(projectRoot, 'src/server'));
+var ParseServer = require(path.resolve(projectRoot, 'src/index')).ParseServer;
 
 var databaseURI = process.env.DATABASE_URI;
 var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');

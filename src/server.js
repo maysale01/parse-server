@@ -1,182 +1,93 @@
-
 /* Externals */
-var express             = require('express'),
-    multer              = require('multer'),
-    request             = require('request'),
-    bodyParser          = require('body-parser'),
-    Parse               = require('parse/node').Parse;
+import express          from 'express';
+import multer           from 'multer';
+import request          from 'request';
+import bodyParser       from 'body-parser';
+import { Parse }        from 'parse/node';
 
-var batch               = require('./utils/batch'),
-    cache               = require('./utils/cache'),
-    middlewares         = require('./middlewares'),
-    DatabaseAdapter     = require('./classes/DatabaseAdapter'),
-    FilesAdapter        = require('./classes/FilesAdapter'),
-    PromiseRouter       = require('./classes/PromiseRouter');
+import { batch, cache, addParseCloud } from './utils';
+import * as middlewares from './middlewares';
+import * as handlers from './handlers';
+import { DatabaseAdapter, FilesAdapter, PromiseRouter } from './classes';
 
-// Mutate the Parse object to add the Cloud Code handlers
+// This app serves the Parse API directly.
+// It's the equivalent of https://api.parse.com/1 in the hosted Parse API.
+
 addParseCloud();
 
-// ParseServer works like a constructor of an express app.
-// The args that we understand are:
-// "databaseAdapter": a class like ExportAdapter providing create, find,
-//                    update, and delete
-// "filesAdapter": a class like GridStoreAdapter providing create, get,
-//                 and delete
-// "databaseURI": a uri like mongodb://localhost:27017/dbname to tell us
-//          what database this Parse API connects to.
-// "cloud": relative location to cloud code to require
-// "appId": the application id to host
-// "masterKey": the master key for requests to this app
-// "facebookAppIds": an array of valid Facebook Application IDs, required
-//                   if using Facebook login
-// "collectionPrefix": optional prefix for database collection names
-// "fileKey": optional key from Parse dashboard for supporting older files
-//            hosted by Parse
-// "clientKey": optional key from Parse dashboard
-// "dotNetKey": optional key from Parse dashboard
-// "restAPIKey": optional key from Parse dashboard
-// "javascriptKey": optional key from Parse dashboard
-function ParseServer(args) {
-  if (!args.appId || !args.masterKey) {
-    throw 'You must provide an appId and masterKey!';
-  }
+export function initParseServer(args) {
 
-  if (args.databaseAdapter) {
-    DatabaseAdapter.setAdapter(args.databaseAdapter);
-  }
-  if (args.filesAdapter) {
-    FilesAdapter.setAdapter(args.filesAdapter);
-  }
-  if (args.databaseURI) {
-    DatabaseAdapter.setAppDatabaseURI(args.appId, args.databaseURI);
-  }
-  if (args.cloud) {
-    addParseCloud();
-    require(args.cloud);
-  }
+    if (!args.appId || !args.masterKey) {
+        throw 'You must provide an appId and masterKey!';
+    }
 
-  cache.apps[args.appId] = {
-    masterKey: args.masterKey,
-    collectionPrefix: args.collectionPrefix || '',
-    clientKey: args.clientKey || '',
-    javascriptKey: args.javascriptKey || '',
-    dotNetKey: args.dotNetKey || '',
-    restAPIKey: args.restAPIKey || '',
-    fileKey: args.fileKey || 'invalid-file-key',
-    facebookAppIds: args.facebookAppIds || []
-  };
+    if (args.databaseAdapter) {
+        DatabaseAdapter.setAdapter(args.databaseAdapter);
+    }
+    if (args.filesAdapter) {
+        FilesAdapter.setAdapter(args.filesAdapter);
+    }
+    if (args.databaseURI) {
+        DatabaseAdapter.setAppDatabaseURI(args.appId, args.databaseURI);
+    }
+    if (args.cloud) {
+        addParseCloud();
+        require(args.cloud);
+    }
+
+    cache.apps[args.appId] = {
+        masterKey: args.masterKey,
+        collectionPrefix: args.collectionPrefix || '',
+        clientKey: args.clientKey || '',
+        javascriptKey: args.javascriptKey || '',
+        dotNetKey: args.dotNetKey || '',
+        restAPIKey: args.restAPIKey || '',
+        fileKey: args.fileKey || 'invalid-file-key',
+        facebookAppIds: args.facebookAppIds || []
+    };
 
   // To maintain compatibility. TODO: Remove in v2.1
-  if (process.env.FACEBOOK_APP_ID) {
-    cache.apps[args.appId]['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
-  }
+    if (process.env.FACEBOOK_APP_ID) {
+        cache.apps[args.appId]['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
+    }
 
   // Initialize the node client SDK automatically
-  Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
+    Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
 
-  // This app serves the Parse API directly.
-  // It's the equivalent of https://api.parse.com/1 in the hosted Parse API.
-  var api = express();
+    const api = express();
+    const router = new PromiseRouter();
 
   // File handling needs to be before default middlewares are applied
-  api.use('/', require('./handlers/files').router);
+    api.use('/', handlers.files.router);
 
   // TODO: separate this from the regular ParseServer object
-  if (process.env.TESTING == 1) {
-    console.log('enabling integration testingRoutes');
-    api.use('/', require('./handlers/testingRoutes').router);
-  }
-
-  api.use(bodyParser.json({ 'type': '*/*' }));
-  api.use(middlewares.allowCrossDomain);
-  api.use(middlewares.allowMethodOverride);
-  api.use(middlewares.handleParseHeaders);
-
-  var router = new PromiseRouter();
-
-  router.merge(require('./handlers/classes'));
-  router.merge(require('./handlers/users'));
-  router.merge(require('./handlers/sessions'));
-  router.merge(require('./handlers/roles'));
-  router.merge(require('./handlers/analytics'));
-  router.merge(require('./handlers/push'));
-  router.merge(require('./handlers/installations'));
-  router.merge(require('./handlers/functions'));
-
-  batch.mountOnto(router);
-
-  router.mountOnto(api);
-
-  api.use(middlewares.handleParseErrors);
-
-  return api;
-}
-
-function addParseCloud() {
-  Parse.Cloud.Functions = {};
-  Parse.Cloud.Triggers = {
-    beforeSave: {},
-    beforeDelete: {},
-    afterSave: {},
-    afterDelete: {}
-  };
-  Parse.Cloud.define = function(functionName, handler) {
-    Parse.Cloud.Functions[functionName] = handler;
-  };
-  Parse.Cloud.beforeSave = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.beforeSave[className] = handler;
-  };
-  Parse.Cloud.beforeDelete = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.beforeDelete[className] = handler;
-  };
-  Parse.Cloud.afterSave = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.afterSave[className] = handler;
-  };
-  Parse.Cloud.afterDelete = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.afterDelete[className] = handler;
-  };
-  Parse.Cloud.httpRequest = function(options) {
-    var promise = new Parse.Promise();
-    var callbacks = {
-      success: options.success,
-      error: options.error
-    };
-    delete options.success;
-    delete options.error;
-    if (options.uri && !options.url) {
-      options.uri = options.url;
-      delete options.url;
+    if (process.env.TESTING == 1) {
+        console.log('enabling integration testingRoutes');
+        api.use('/', handlers.testingRoutes.router);
     }
-    if (typeof options.body === 'object') {
-      options.body = JSON.stringify(options.body);
-    }
-    request(options, (error, response, body) => {
-      if (error) {
-        if (callbacks.error) {
-          return callbacks.error(error);
-        }
-        return promise.reject(error);
-      } else {
-        if (callbacks.success) {
-          return callbacks.success(body);
-        }
-        return promise.resolve(body);
-      }
-    });
-    return promise;
-  };
-  global.Parse = Parse;
+
+    api.use(bodyParser.json({ 'type': '*/*' }));
+    api.use(middlewares.allowCrossDomain);
+    api.use(middlewares.allowMethodOverride);
+    api.use(middlewares.handleParseHeaders);
+
+    router.merge(handlers['classes']);
+    router.merge(handlers['users']);
+    router.merge(handlers['sessions']);
+    router.merge(handlers['roles']);
+    router.merge(handlers['analytics']);
+    router.merge(handlers['push']);
+    router.merge(handlers['installations']);
+    router.merge(handlers['functions']);
+
+    batch.mountOnto(router);
+
+    router.mountOnto(api);
+
+    api.use(middlewares.handleParseErrors);
+
+    return api;
+
 }
 
-function getClassName(parseClass) {
-  if (parseClass && parseClass.className) {
-    return parseClass.className;
-  }
-  return parseClass;
-}
-
-module.exports = ParseServer;
+export default initParseServer;
