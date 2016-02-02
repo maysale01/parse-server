@@ -16,7 +16,7 @@ var router  = new PromiseRouter();
 
 // Returns a promise for a {status, response, location} object.
 function handleCreate(req) {
-  return rest.create(req.config, req.auth,
+    return rest.create(req.config, req.auth,
                      '_User', req.body);
 }
 
@@ -24,154 +24,154 @@ function handleCreate(req) {
 function handleLogIn(req) {
 
   // Use query parameters instead if provided in url
-  if (!req.body.username && req.query.username) {
-    req.body = req.query;
-  }
+    if (!req.body.username && req.query.username) {
+        req.body = req.query;
+    }
 
   // TODO: use the right error codes / descriptions.
-  if (!req.body.username) {
-    throw new Parse.Error(Parse.Error.USERNAME_MISSING,
+    if (!req.body.username) {
+        throw new Parse.Error(Parse.Error.USERNAME_MISSING,
                           'username is required.');
-  }
-  if (!req.body.password) {
-    throw new Parse.Error(Parse.Error.PASSWORD_MISSING,
+    }
+    if (!req.body.password) {
+        throw new Parse.Error(Parse.Error.PASSWORD_MISSING,
                           'password is required.');
-  }
+    }
 
-  var user;
-  return req.database.find('_User', {username: req.body.username})
+    var user;
+    return req.database.find('_User', {username: req.body.username})
     .then((results) => {
-      if (!results.length) {
-        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+        if (!results.length) {
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                               'Invalid username/password.');
-      }
-      user = results[0];
-      return passwordCrypto.compare(req.body.password, user.password);
+        }
+        user = results[0];
+        return passwordCrypto.compare(req.body.password, user.password);
     }).then((correct) => {
-      if (!correct) {
-        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+        if (!correct) {
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                               'Invalid username/password.');
-      }
-      var token = 'r:' + rack();
-      user.sessionToken = token;
-      delete user.password;
+        }
+        var token = 'r:' + rack();
+        user.sessionToken = token;
+        delete user.password;
 
-      var expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        var expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-      var sessionData = {
-        sessionToken: token,
-        user: {
-          __type: 'Pointer',
-          className: '_User',
-          objectId: user.objectId
-        },
-        createdWith: {
-          'action': 'login',
-          'authProvider': 'password'
-        },
-        restricted: false,
-        expiresAt: Parse._encode(expiresAt).iso
-      };
+        var sessionData = {
+            sessionToken: token,
+            user: {
+              __type: 'Pointer',
+              className: '_User',
+              objectId: user.objectId
+          },
+            createdWith: {
+              'action': 'login',
+              'authProvider': 'password'
+          },
+            restricted: false,
+            expiresAt: Parse._encode(expiresAt).iso
+        };
 
-      if (req.info.installationId) {
-        sessionData.installationId = req.info.installationId
-      }
+        if (req.info.installationId) {
+            sessionData.installationId = req.info.installationId;
+        }
 
-      var create = new RestWrite(req.config, Auth.master(req.config),
+        var create = new RestWrite(req.config, Auth.master(req.config),
                                  '_Session', null, sessionData);
-      return create.execute();
+        return create.execute();
     }).then(() => {
-      return {response: user};
+        return {response: user};
     });
 }
 
 // Returns a promise that resolves to a {response} object.
 // TODO: share code with classes.js
 function handleFind(req) {
-  var options = {};
-  if (req.body.skip) {
-    options.skip = Number(req.body.skip);
-  }
-  if (req.body.limit) {
-    options.limit = Number(req.body.limit);
-  }
-  if (req.body.order) {
-    options.order = String(req.body.order);
-  }
-  if (req.body.count) {
-    options.count = true;
-  }
-  if (typeof req.body.keys == 'string') {
-    options.keys = req.body.keys;
-  }
-  if (req.body.include) {
-    options.include = String(req.body.include);
-  }
-  if (req.body.redirectClassNameForKey) {
-    options.redirectClassNameForKey = String(req.body.redirectClassNameForKey);
-  }
+    var options = {};
+    if (req.body.skip) {
+        options.skip = Number(req.body.skip);
+    }
+    if (req.body.limit) {
+        options.limit = Number(req.body.limit);
+    }
+    if (req.body.order) {
+        options.order = String(req.body.order);
+    }
+    if (req.body.count) {
+        options.count = true;
+    }
+    if (typeof req.body.keys == 'string') {
+        options.keys = req.body.keys;
+    }
+    if (req.body.include) {
+        options.include = String(req.body.include);
+    }
+    if (req.body.redirectClassNameForKey) {
+        options.redirectClassNameForKey = String(req.body.redirectClassNameForKey);
+    }
 
-  return rest.find(req.config, req.auth,
+    return rest.find(req.config, req.auth,
                    '_User', req.body.where, options)
   .then((response) => {
-    return {response: response};
+      return {response: response};
   });
 
 }
 
 // Returns a promise for a {response} object.
 function handleGet(req) {
-  return rest.find(req.config, req.auth, '_User',
+    return rest.find(req.config, req.auth, '_User',
                    {objectId: req.params.objectId})
   .then((response) => {
-    if (!response.results || response.results.length == 0) {
-      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+      if (!response.results || response.results.length == 0) {
+          throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                             'Object not found.');
-    } else {
-      return {response: response.results[0]};
-    }
+      } else {
+          return {response: response.results[0]};
+      }
   });
 }
 
 function handleMe(req) {
-  if (!req.info || !req.info.sessionToken) {
-      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+    if (!req.info || !req.info.sessionToken) {
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                             'Object not found.');
-  }
-  return rest.find(req.config, Auth.master(req.config), '_Session',
+    }
+    return rest.find(req.config, Auth.master(req.config), '_Session',
                    {_session_token: req.info.sessionToken},
                    {include: 'user'})
   .then((response) => {
-    if (!response.results || response.results.length == 0 ||
+      if (!response.results || response.results.length == 0 ||
         !response.results[0].user) {
-      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+          throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                             'Object not found.');
-    } else {
-      var user = response.results[0].user;
-      return {response: user};
-    }
+      } else {
+          var user = response.results[0].user;
+          return {response: user};
+      }
   });
 }
 
 function handleDelete(req) {
-  return rest.del(req.config, req.auth,
+    return rest.del(req.config, req.auth,
                   req.params.className, req.params.objectId)
   .then(() => {
-    return {response: {}};
+      return {response: {}};
   });
 }
 
 function handleUpdate(req) {
-  return rest.update(req.config, req.auth, '_User',
+    return rest.update(req.config, req.auth, '_User',
                      req.params.objectId, req.body)
   .then((response) => {
-    return {response: response};
+      return {response: response};
   });
 }
 
 function notImplementedYet(req) {
-  throw new Parse.Error(Parse.Error.COMMAND_UNAVAILABLE,
+    throw new Parse.Error(Parse.Error.COMMAND_UNAVAILABLE,
                         'This path is not implemented yet.');
 }
 

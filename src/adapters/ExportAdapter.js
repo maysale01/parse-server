@@ -10,17 +10,17 @@ var transform = require('../utils/transform');
 // options can contain:
 //   collectionPrefix: the string to put in front of every collection name.
 function ExportAdapter(mongoURI, options) {
-  this.mongoURI = mongoURI;
-  options = options || {};
+    this.mongoURI = mongoURI;
+    options = options || {};
 
-  this.collectionPrefix = options.collectionPrefix;
+    this.collectionPrefix = options.collectionPrefix;
 
   // We don't want a mutable this.schema, because then you could have
   // one request that uses different schemas for different parts of
   // it. Instead, use loadSchema to get a schema.
-  this.schemaPromise = null;
+    this.schemaPromise = null;
 
-  this.connect();
+    this.connect();
 }
 
 // Connects to the database. Returns a promise that resolves when the
@@ -28,17 +28,17 @@ function ExportAdapter(mongoURI, options) {
 // this.db will be populated with a Mongo "Db" object when the
 // promise resolves successfully.
 ExportAdapter.prototype.connect = function() {
-  if (this.connectionPromise) {
+    if (this.connectionPromise) {
     // There's already a connection in progress.
-    return this.connectionPromise;
-  }
+        return this.connectionPromise;
+    }
 
-  this.connectionPromise = Promise.resolve().then(() => {
-    return MongoClient.connect(this.mongoURI);
-  }).then((db) => {
-    this.db = db;
+    this.connectionPromise = Promise.resolve().then(() => {
+        return MongoClient.connect(this.mongoURI);
+    }).then((db) => {
+      this.db = db;
   });
-  return this.connectionPromise;
+    return this.connectionPromise;
 };
 
 // Returns a promise for a Mongo collection.
@@ -46,64 +46,64 @@ ExportAdapter.prototype.connect = function() {
 var joinRegex = /^_Join:[A-Za-z0-9_]+:[A-Za-z0-9_]+/;
 var otherRegex = /^[A-Za-z][A-Za-z0-9_]*$/;
 ExportAdapter.prototype.collection = function(className) {
-  if (className !== '_User' &&
+    if (className !== '_User' &&
       className !== '_Installation' &&
       className !== '_Session' &&
       className !== '_SCHEMA' &&
       className !== '_Role' &&
       !joinRegex.test(className) &&
       !otherRegex.test(className)) {
-    throw new Parse.Error(Parse.Error.INVALID_CLASS_NAME,
+        throw new Parse.Error(Parse.Error.INVALID_CLASS_NAME,
                           'invalid className: ' + className);
-  }
-  return this.connect().then(() => {
-    return this.db.collection(this.collectionPrefix + className);
-  });
+    }
+    return this.connect().then(() => {
+        return this.db.collection(this.collectionPrefix + className);
+    });
 };
 
 function returnsTrue() {
-  return true;
+    return true;
 }
 
 // Returns a promise for a schema object.
 // If we are provided a acceptor, then we run it on the schema.
 // If the schema isn't accepted, we reload it at most once.
 ExportAdapter.prototype.loadSchema = function(acceptor) {
-  acceptor = acceptor || returnsTrue;
+    acceptor = acceptor || returnsTrue;
 
-  if (!this.schemaPromise) {
-    this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
-      delete this.schemaPromise;
-      return Schema.load(coll);
-    });
-    return this.schemaPromise;
-  }
-
-  return this.schemaPromise.then((schema) => {
-    if (acceptor(schema)) {
-      return schema;
+    if (!this.schemaPromise) {
+        this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
+          delete this.schemaPromise;
+          return Schema.load(coll);
+      });
+        return this.schemaPromise;
     }
-    this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
-      delete this.schemaPromise;
-      return Schema.load(coll);
+
+    return this.schemaPromise.then((schema) => {
+        if (acceptor(schema)) {
+          return schema;
+      }
+        this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
+          delete this.schemaPromise;
+          return Schema.load(coll);
+      });
+        return this.schemaPromise;
     });
-    return this.schemaPromise;
-  });
 };
 
 // Returns a promise for the classname that is related to the given
 // classname through the key.
 // TODO: make this not in the ExportAdapter interface
 ExportAdapter.prototype.redirectClassNameForKey = function(className, key) {
-  return this.loadSchema().then((schema) => {
-    var t = schema.getExpectedType(className, key);
-    var match = t.match(/^relation<(.*)>$/);
-    if (match) {
-      return match[1];
-    } else {
-      return className;
-    }
-  });
+    return this.loadSchema().then((schema) => {
+        var t = schema.getExpectedType(className, key);
+        var match = t.match(/^relation<(.*)>$/);
+        if (match) {
+          return match[1];
+      } else {
+          return className;
+      }
+    });
 };
 
 // Uses the schema to validate the object (REST API format).
@@ -111,28 +111,28 @@ ExportAdapter.prototype.redirectClassNameForKey = function(className, key) {
 // This does not update this.schema, because in a situation like a
 // batch request, that could confuse other users of the schema.
 ExportAdapter.prototype.validateObject = function(className, object) {
-  return this.loadSchema().then((schema) => {
-    return schema.validateObject(className, object);
-  });
+    return this.loadSchema().then((schema) => {
+        return schema.validateObject(className, object);
+    });
 };
 
 // Like transform.untransformObject but you need to provide a className.
 // Filters out any data that shouldn't be on this REST-formatted object.
 ExportAdapter.prototype.untransformObject = function(
   schema, isMaster, aclGroup, className, mongoObject) {
-  var object = transform.untransformObject(schema, className, mongoObject);
+    var object = transform.untransformObject(schema, className, mongoObject);
 
-  if (className !== '_User') {
+    if (className !== '_User') {
+        return object;
+    }
+
+    if (isMaster || (aclGroup.indexOf(object.objectId) > -1)) {
+        return object;
+    }
+
+    delete object.authData;
+    delete object.sessionToken;
     return object;
-  }
-
-  if (isMaster || (aclGroup.indexOf(object.objectId) > -1)) {
-    return object;
-  }
-
-  delete object.authData;
-  delete object.sessionToken;
-  return object;
 };
 
 // Runs an update on the database.
@@ -144,56 +144,56 @@ ExportAdapter.prototype.untransformObject = function(
 //         one of the provided strings must provide the caller with
 //         write permissions.
 ExportAdapter.prototype.update = function(className, query, update, options) {
-  var acceptor = function(schema) {
-    return schema.hasKeys(className, Object.keys(query));
-  };
-  var isMaster = !('acl' in options);
-  var aclGroup = options.acl || [];
-  var mongoUpdate, schema;
-  return this.loadSchema(acceptor).then((s) => {
-    schema = s;
-    if (!isMaster) {
-      return schema.validatePermission(className, aclGroup, 'update');
-    }
-    return Promise.resolve();
-  }).then(() => {
+    var acceptor = function(schema) {
+        return schema.hasKeys(className, Object.keys(query));
+    };
+    var isMaster = !('acl' in options);
+    var aclGroup = options.acl || [];
+    var mongoUpdate, schema;
+    return this.loadSchema(acceptor).then((s) => {
+        schema = s;
+        if (!isMaster) {
+          return schema.validatePermission(className, aclGroup, 'update');
+      }
+        return Promise.resolve();
+    }).then(() => {
 
-    return this.handleRelationUpdates(className, query.objectId, update);
+      return this.handleRelationUpdates(className, query.objectId, update);
   }).then(() => {
-    return this.collection(className);
+      return this.collection(className);
   }).then((coll) => {
-    var mongoWhere = transform.transformWhere(schema, className, query);
-    if (options.acl) {
-      var writePerms = [
+      var mongoWhere = transform.transformWhere(schema, className, query);
+      if (options.acl) {
+          var writePerms = [
         {_wperm: {'$exists': false}}
-      ];
-      for (var entry of options.acl) {
-        writePerms.push({_wperm: {'$in': [entry]}});
+        ];
+          for (var entry of options.acl) {
+            writePerms.push({_wperm: {'$in': [entry]}});
+        }
+          mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
       }
-      mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
-    }
 
-    mongoUpdate = transform.transformUpdate(schema, className, update);
+      mongoUpdate = transform.transformUpdate(schema, className, update);
 
-    return coll.findAndModify(mongoWhere, {}, mongoUpdate, {});
+      return coll.findAndModify(mongoWhere, {}, mongoUpdate, {});
   }).then((result) => {
-    if (!result.value) {
-      return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+      if (!result.value) {
+          return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                                             'Object not found.'));
-    }
-    if (result.lastErrorObject.n != 1) {
-      return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
-                                            'Object not found.'));
-    }
-
-    var response = {};
-    var inc = mongoUpdate['$inc'];
-    if (inc) {
-      for (var key in inc) {
-        response[key] = (result.value[key] || 0) + inc[key];
       }
-    }
-    return response;
+      if (result.lastErrorObject.n != 1) {
+          return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+                                            'Object not found.'));
+      }
+
+      var response = {};
+      var inc = mongoUpdate['$inc'];
+      if (inc) {
+          for (var key in inc) {
+            response[key] = (result.value[key] || 0) + inc[key];
+        }
+      }
+      return response;
   });
 };
 
@@ -204,60 +204,60 @@ ExportAdapter.prototype.update = function(className, query, update, options) {
 ExportAdapter.prototype.handleRelationUpdates = function(className,
                                                          objectId,
                                                          update) {
-  var pending = [];
-  var deleteMe = [];
-  objectId = update.objectId || objectId;
+    var pending = [];
+    var deleteMe = [];
+    objectId = update.objectId || objectId;
 
-  var process = (op, key) => {
-    if (!op) {
-      return;
-    }
-    if (op.__op == 'AddRelation') {
-      for (var object of op.objects) {
-        pending.push(this.addRelation(key, className,
+    var process = (op, key) => {
+        if (!op) {
+          return;
+      }
+        if (op.__op == 'AddRelation') {
+          for (var object of op.objects) {
+            pending.push(this.addRelation(key, className,
                                       objectId,
                                       object.objectId));
+        }
+          deleteMe.push(key);
       }
-      deleteMe.push(key);
-    }
 
-    if (op.__op == 'RemoveRelation') {
-      for (var object of op.objects) {
-        pending.push(this.removeRelation(key, className,
+        if (op.__op == 'RemoveRelation') {
+          for (var object of op.objects) {
+            pending.push(this.removeRelation(key, className,
                                          objectId,
                                          object.objectId));
+        }
+          deleteMe.push(key);
       }
-      deleteMe.push(key);
-    }
 
-    if (op.__op == 'Batch') {
-      for (x of op.ops) {
-        process(x, key);
+        if (op.__op == 'Batch') {
+          for (x of op.ops) {
+            process(x, key);
+        }
       }
-    }
-  };
+    };
 
-  for (var key in update) {
-    process(update[key], key);
-  }
-  for (var key of deleteMe) {
-    delete update[key];
-  }
-  return Promise.all(pending);
+    for (var key in update) {
+        process(update[key], key);
+    }
+    for (var key of deleteMe) {
+        delete update[key];
+    }
+    return Promise.all(pending);
 };
 
 // Adds a relation.
 // Returns a promise that resolves successfully iff the add was successful.
 ExportAdapter.prototype.addRelation = function(key, fromClassName,
                                                fromId, toId) {
-  var doc = {
-    relatedId: toId,
-    owningId: fromId
-  };
-  var className = '_Join:' + key + ':' + fromClassName;
-  return this.collection(className).then((coll) => {
-    return coll.update(doc, doc, {upsert: true});
-  });
+    var doc = {
+        relatedId: toId,
+        owningId: fromId
+    };
+    var className = '_Join:' + key + ':' + fromClassName;
+    return this.collection(className).then((coll) => {
+        return coll.update(doc, doc, {upsert: true});
+    });
 };
 
 // Removes a relation.
@@ -265,14 +265,14 @@ ExportAdapter.prototype.addRelation = function(key, fromClassName,
 // successful.
 ExportAdapter.prototype.removeRelation = function(key, fromClassName,
                                                   fromId, toId) {
-  var doc = {
-    relatedId: toId,
-    owningId: fromId
-  };
-  var className = '_Join:' + key + ':' + fromClassName;
-  return this.collection(className).then((coll) => {
-    return coll.remove(doc);
-  });
+    var doc = {
+        relatedId: toId,
+        owningId: fromId
+    };
+    var className = '_Join:' + key + ':' + fromClassName;
+    return this.collection(className).then((coll) => {
+        return coll.remove(doc);
+    });
 };
 
 // Removes objects matches this query from the database.
@@ -283,67 +283,67 @@ ExportAdapter.prototype.removeRelation = function(key, fromClassName,
 //         one of the provided strings must provide the caller with
 //         write permissions.
 ExportAdapter.prototype.destroy = function(className, query, options) {
-  options = options || {};
-  var isMaster = !('acl' in options);
-  var aclGroup = options.acl || [];
+    options = options || {};
+    var isMaster = !('acl' in options);
+    var aclGroup = options.acl || [];
 
-  var schema;
-  return this.loadSchema().then((s) => {
-    schema = s;
-    if (!isMaster) {
-      return schema.validatePermission(className, aclGroup, 'delete');
-    }
-    return Promise.resolve();
-  }).then(() => {
-
-    return this.collection(className);
-  }).then((coll) => {
-    var mongoWhere = transform.transformWhere(schema, className, query);
-
-    if (options.acl) {
-      var writePerms = [
-        {_wperm: {'$exists': false}}
-      ];
-      for (var entry of options.acl) {
-        writePerms.push({_wperm: {'$in': [entry]}});
+    var schema;
+    return this.loadSchema().then((s) => {
+        schema = s;
+        if (!isMaster) {
+          return schema.validatePermission(className, aclGroup, 'delete');
       }
-      mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
-    }
+        return Promise.resolve();
+    }).then(() => {
 
-    return coll.remove(mongoWhere);
+      return this.collection(className);
+  }).then((coll) => {
+      var mongoWhere = transform.transformWhere(schema, className, query);
+
+      if (options.acl) {
+          var writePerms = [
+        {_wperm: {'$exists': false}}
+        ];
+          for (var entry of options.acl) {
+            writePerms.push({_wperm: {'$in': [entry]}});
+        }
+          mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
+      }
+
+      return coll.remove(mongoWhere);
   }).then((resp) => {
-    if (resp.result.n === 0) {
-      return Promise.reject(
+      if (resp.result.n === 0) {
+          return Promise.reject(
         new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                         'Object not found.'));
 
-    }
+      }
   }, (error) => {
-    throw error;
+      throw error;
   });
 };
 
 // Inserts an object into the database.
 // Returns a promise that resolves successfully iff the object saved.
 ExportAdapter.prototype.create = function(className, object, options) {
-  var schema;
-  var isMaster = !('acl' in options);
-  var aclGroup = options.acl || [];
+    var schema;
+    var isMaster = !('acl' in options);
+    var aclGroup = options.acl || [];
 
-  return this.loadSchema().then((s) => {
-    schema = s;
-    if (!isMaster) {
-      return schema.validatePermission(className, aclGroup, 'create');
-    }
-    return Promise.resolve();
-  }).then(() => {
+    return this.loadSchema().then((s) => {
+        schema = s;
+        if (!isMaster) {
+          return schema.validatePermission(className, aclGroup, 'create');
+      }
+        return Promise.resolve();
+    }).then(() => {
 
-    return this.handleRelationUpdates(className, null, object);
+      return this.handleRelationUpdates(className, null, object);
   }).then(() => {
-    return this.collection(className);
+      return this.collection(className);
   }).then((coll) => {
-    var mongoObject = transform.transformCreate(schema, className, object);
-    return coll.insert([mongoObject]);
+      var mongoObject = transform.transformCreate(schema, className, object);
+      return coll.insert([mongoObject]);
   });
 };
 
@@ -352,67 +352,67 @@ ExportAdapter.prototype.create = function(className, object, options) {
 // to avoid Mongo-format dependencies.
 // Returns a promise that resolves to a list of items.
 ExportAdapter.prototype.mongoFind = function(className, query, options) {
-  options = options || {};
-  return this.collection(className).then((coll) => {
-    return coll.find(query, options).toArray();
-  });
+    options = options || {};
+    return this.collection(className).then((coll) => {
+        return coll.find(query, options).toArray();
+    });
 };
 
 // Deletes everything in the database matching the current collectionPrefix
 // Won't delete collections in the system namespace
 // Returns a promise.
 ExportAdapter.prototype.deleteEverything = function() {
-  this.schemaPromise = null;
+    this.schemaPromise = null;
 
-  return this.connect().then(() => {
-    return this.db.collections();
-  }).then((colls) => {
-    var promises = [];
-    for (var coll of colls) {
-      if (!coll.namespace.match(/\.system\./) &&
+    return this.connect().then(() => {
+        return this.db.collections();
+    }).then((colls) => {
+      var promises = [];
+      for (var coll of colls) {
+          if (!coll.namespace.match(/\.system\./) &&
           coll.collectionName.indexOf(this.collectionPrefix) === 0) {
-        promises.push(coll.drop());
+            promises.push(coll.drop());
+        }
       }
-    }
-    return Promise.all(promises);
+      return Promise.all(promises);
   });
 };
 
 // Finds the keys in a query. Returns a Set. REST format only
 function keysForQuery(query) {
-  var sublist = query['$and'] || query['$or'];
-  if (sublist) {
-    var answer = new Set();
-    for (var subquery of sublist) {
-      for (var key of keysForQuery(subquery)) {
-        answer.add(key);
+    var sublist = query['$and'] || query['$or'];
+    if (sublist) {
+        var answer = new Set();
+        for (var subquery of sublist) {
+          for (var key of keysForQuery(subquery)) {
+            answer.add(key);
+        }
       }
+        return answer;
     }
-    return answer;
-  }
 
-  return new Set(Object.keys(query));
+    return new Set(Object.keys(query));
 }
 
 // Returns a promise for a list of related ids given an owning id.
 // className here is the owning className.
 ExportAdapter.prototype.relatedIds = function(className, key, owningId) {
-  var joinTable = '_Join:' + key + ':' + className;
-  return this.collection(joinTable).then((coll) => {
-    return coll.find({owningId: owningId}).toArray();
-  }).then((results) => {
-    return results.map(r => r.relatedId);
+    var joinTable = '_Join:' + key + ':' + className;
+    return this.collection(joinTable).then((coll) => {
+        return coll.find({owningId: owningId}).toArray();
+    }).then((results) => {
+      return results.map(r => r.relatedId);
   });
 };
 
 // Returns a promise for a list of owning ids given some related ids.
 // className here is the owning className.
 ExportAdapter.prototype.owningIds = function(className, key, relatedIds) {
-  var joinTable = '_Join:' + key + ':' + className;
-  return this.collection(joinTable).then((coll) => {
-    return coll.find({relatedId: {'$in': relatedIds}}).toArray();
-  }).then((results) => {
-    return results.map(r => r.owningId);
+    var joinTable = '_Join:' + key + ':' + className;
+    return this.collection(joinTable).then((coll) => {
+        return coll.find({relatedId: {'$in': relatedIds}}).toArray();
+    }).then((results) => {
+      return results.map(r => r.owningId);
   });
 };
 
@@ -422,44 +422,44 @@ ExportAdapter.prototype.owningIds = function(className, key, relatedIds) {
 // TODO: this only handles one of these at a time - make it handle more
 ExportAdapter.prototype.reduceInRelation = function(className, query, schema) {
   // Search for an in-relation or equal-to-relation
-  for (var key in query) {
-    if (query[key] &&
+    for (var key in query) {
+        if (query[key] &&
         (query[key]['$in'] || query[key].__type == 'Pointer')) {
-      var t = schema.getExpectedType(className, key);
-      var match = t ? t.match(/^relation<(.*)>$/) : false;
-      if (!match) {
-        continue;
+          var t = schema.getExpectedType(className, key);
+          var match = t ? t.match(/^relation<(.*)>$/) : false;
+          if (!match) {
+            continue;
+        }
+          var relatedClassName = match[1];
+          var relatedIds;
+          if (query[key]['$in']) {
+            relatedIds = query[key]['$in'].map(r => r.objectId);
+        } else {
+            relatedIds = [query[key].objectId];
+        }
+          return this.owningIds(className, key, relatedIds).then((ids) => {
+            delete query[key];
+            query.objectId = {'$in': ids};
+        });
       }
-      var relatedClassName = match[1];
-      var relatedIds;
-      if (query[key]['$in']) {
-        relatedIds = query[key]['$in'].map(r => r.objectId);
-      } else {
-        relatedIds = [query[key].objectId];
-      }
-      return this.owningIds(className, key, relatedIds).then((ids) => {
-        delete query[key];
-        query.objectId = {'$in': ids};
-      });
     }
-  }
-  return Promise.resolve();
+    return Promise.resolve();
 };
 
 // Modifies query so that it no longer has $relatedTo
 // Returns a promise that resolves when query is mutated
 ExportAdapter.prototype.reduceRelationKeys = function(className, query) {
-  var relatedTo = query['$relatedTo'];
-  if (relatedTo) {
-    return this.relatedIds(
+    var relatedTo = query['$relatedTo'];
+    if (relatedTo) {
+        return this.relatedIds(
       relatedTo.object.className,
       relatedTo.key,
       relatedTo.object.objectId).then((ids) => {
-        delete query['$relatedTo'];
-        query['objectId'] = {'$in': ids};
-        return this.reduceRelationKeys(className, query);
+          delete query['$relatedTo'];
+          query['objectId'] = {'$in': ids};
+          return this.reduceRelationKeys(className, query);
       });
-  }
+    }
 };
 
 // Does a find with "smart indexing".
@@ -468,28 +468,28 @@ ExportAdapter.prototype.reduceRelationKeys = function(className, query) {
 // This could be improved a lot but it's not clear if that's a good
 // idea. Or even if this behavior is a good idea.
 ExportAdapter.prototype.smartFind = function(coll, where, options) {
-  return coll.find(where, options).toArray()
+    return coll.find(where, options).toArray()
     .then((result) => {
-      return result;
+        return result;
     }, (error) => {
       // Check for "no geoindex" error
-      if (!error.message.match(/unable to find index for .geoNear/) ||
+        if (!error.message.match(/unable to find index for .geoNear/) ||
           error.code != 17007) {
-        throw error;
-      }
+            throw error;
+        }
 
       // Figure out what key needs an index
-      var key = error.message.match(/field=([A-Za-z_0-9]+) /)[1];
-      if (!key) {
-        throw error;
-      }
+        var key = error.message.match(/field=([A-Za-z_0-9]+) /)[1];
+        if (!key) {
+            throw error;
+        }
 
-      var index = {};
-      index[key] = '2d';
-      return coll.createIndex(index).then(() => {
+        var index = {};
+        index[key] = '2d';
+        return coll.createIndex(index).then(() => {
         // Retry, but just once.
-        return coll.find(where, options).toArray();
-      });
+            return coll.find(where, options).toArray();
+        });
     });
 };
 
@@ -508,69 +508,69 @@ ExportAdapter.prototype.smartFind = function(coll, where, options) {
 // anything about users, ideally. Then, improve the format of the ACL
 // arg to work like the others.
 ExportAdapter.prototype.find = function(className, query, options) {
-  options = options || {};
-  var mongoOptions = {};
-  if (options.skip) {
-    mongoOptions.skip = options.skip;
-  }
-  if (options.limit) {
-    mongoOptions.limit = options.limit;
-  }
-
-  var isMaster = !('acl' in options);
-  var aclGroup = options.acl || [];
-  var acceptor = function(schema) {
-    return schema.hasKeys(className, keysForQuery(query));
-  };
-  var schema;
-  return this.loadSchema(acceptor).then((s) => {
-    schema = s;
-    if (options.sort) {
-      mongoOptions.sort = {};
-      for (var key in options.sort) {
-        var mongoKey = transform.transformKey(schema, className, key);
-        mongoOptions.sort[mongoKey] = options.sort[key];
-      }
+    options = options || {};
+    var mongoOptions = {};
+    if (options.skip) {
+        mongoOptions.skip = options.skip;
+    }
+    if (options.limit) {
+        mongoOptions.limit = options.limit;
     }
 
-    if (!isMaster) {
-      var op = 'find';
-      var k = Object.keys(query);
-      if (k.length == 1 && typeof query.objectId == 'string') {
-        op = 'get';
+    var isMaster = !('acl' in options);
+    var aclGroup = options.acl || [];
+    var acceptor = function(schema) {
+        return schema.hasKeys(className, keysForQuery(query));
+    };
+    var schema;
+    return this.loadSchema(acceptor).then((s) => {
+        schema = s;
+        if (options.sort) {
+          mongoOptions.sort = {};
+          for (var key in options.sort) {
+            var mongoKey = transform.transformKey(schema, className, key);
+            mongoOptions.sort[mongoKey] = options.sort[key];
+        }
       }
-      return schema.validatePermission(className, aclGroup, op);
-    }
-    return Promise.resolve();
+
+        if (!isMaster) {
+          var op = 'find';
+          var k = Object.keys(query);
+          if (k.length == 1 && typeof query.objectId == 'string') {
+            op = 'get';
+        }
+          return schema.validatePermission(className, aclGroup, op);
+      }
+        return Promise.resolve();
+    }).then(() => {
+      return this.reduceRelationKeys(className, query);
   }).then(() => {
-    return this.reduceRelationKeys(className, query);
+      return this.reduceInRelation(className, query, schema);
   }).then(() => {
-    return this.reduceInRelation(className, query, schema);
-  }).then(() => {
-    return this.collection(className);
+      return this.collection(className);
   }).then((coll) => {
-    var mongoWhere = transform.transformWhere(schema, className, query);
-    if (!isMaster) {
-      var orParts = [
-        {"_rperm" : { "$exists": false }},
-        {"_rperm" : { "$in" : ["*"]}}
-      ];
-      for (var acl of aclGroup) {
-        orParts.push({"_rperm" : { "$in" : [acl]}});
+      var mongoWhere = transform.transformWhere(schema, className, query);
+      if (!isMaster) {
+          var orParts = [
+        {'_rperm' : { '$exists': false }},
+        {'_rperm' : { '$in' : ['*']}}
+        ];
+          for (var acl of aclGroup) {
+            orParts.push({'_rperm' : { '$in' : [acl]}});
+        }
+          mongoWhere = {'$and': [mongoWhere, {'$or': orParts}]};
       }
-      mongoWhere = {'$and': [mongoWhere, {'$or': orParts}]};
-    }
-    if (options.count) {
-      return coll.count(mongoWhere, mongoOptions);
-    } else {
-      return this.smartFind(coll, mongoWhere, mongoOptions)
+      if (options.count) {
+          return coll.count(mongoWhere, mongoOptions);
+      } else {
+          return this.smartFind(coll, mongoWhere, mongoOptions)
         .then((mongoResults) => {
-          return mongoResults.map((r) => {
-            return this.untransformObject(
+            return mongoResults.map((r) => {
+                return this.untransformObject(
               schema, isMaster, aclGroup, className, r);
-          });
+            });
         });
-    }
+      }
   });
 };
 

@@ -7,32 +7,32 @@ var router = new PromiseRouter();
 
 function handleCloudFunction(req) {
   // TODO: set user from req.auth
-  if (Parse.Cloud.Functions[req.params.functionName]) {
-    return new Promise(function (resolve, reject) {
-      var response = createResponseObject(resolve, reject);
-      var request = {
-        params: req.body || {}
-      };
-      Parse.Cloud.Functions[req.params.functionName](request, response);
-    });
-  } else {
-    throw new Parse.Error(Parse.Error.SCRIPT_FAILED, 'Invalid function.');
-  }
+    if (Parse.Cloud.Functions[req.params.functionName]) {
+        return new Promise(function (resolve, reject) {
+          var response = createResponseObject(resolve, reject);
+          var request = {
+            params: req.body || {}
+        };
+          Parse.Cloud.Functions[req.params.functionName](request, response);
+      });
+    } else {
+        throw new Parse.Error(Parse.Error.SCRIPT_FAILED, 'Invalid function.');
+    }
 }
 
 function createResponseObject(resolve, reject) {
-  return {
-    success: function(result) {
-      resolve({
-        response: {
-          result: result
-        }
-      });
-    },
-    error: function(error) {
-      reject(new Parse.Error(Parse.Error.SCRIPT_FAILED, error));
-    }
-  }
+    return {
+        success: function(result) {
+          resolve({
+            response: {
+              result: result
+          }
+        });
+      },
+        error: function(error) {
+          reject(new Parse.Error(Parse.Error.SCRIPT_FAILED, error));
+      }
+    };
 }
 
 router.route('POST', '/functions/:functionName', handleCloudFunction);

@@ -37,146 +37,146 @@ addParseCloud();
 // "restAPIKey": optional key from Parse dashboard
 // "javascriptKey": optional key from Parse dashboard
 function initParseServer(args) {
-  if (!args.appId || !args.masterKey) {
-    throw 'You must provide an appId and masterKey!';
-  }
+    if (!args.appId || !args.masterKey) {
+        throw 'You must provide an appId and masterKey!';
+    }
 
-  if (args.databaseAdapter) {
-    DatabaseAdapter.setAdapter(args.databaseAdapter);
-  }
-  if (args.filesAdapter) {
-    FilesAdapter.setAdapter(args.filesAdapter);
-  }
-  if (args.databaseURI) {
-    DatabaseAdapter.setAppDatabaseURI(args.appId, args.databaseURI);
-  }
-  if (args.cloud) {
-    addParseCloud();
-    require(args.cloud);
-  }
+    if (args.databaseAdapter) {
+        DatabaseAdapter.setAdapter(args.databaseAdapter);
+    }
+    if (args.filesAdapter) {
+        FilesAdapter.setAdapter(args.filesAdapter);
+    }
+    if (args.databaseURI) {
+        DatabaseAdapter.setAppDatabaseURI(args.appId, args.databaseURI);
+    }
+    if (args.cloud) {
+        addParseCloud();
+        require(args.cloud);
+    }
 
-  cache.apps[args.appId] = {
-    masterKey: args.masterKey,
-    collectionPrefix: args.collectionPrefix || '',
-    clientKey: args.clientKey || '',
-    javascriptKey: args.javascriptKey || '',
-    dotNetKey: args.dotNetKey || '',
-    restAPIKey: args.restAPIKey || '',
-    fileKey: args.fileKey || 'invalid-file-key',
-    facebookAppIds: args.facebookAppIds || []
-  };
+    cache.apps[args.appId] = {
+        masterKey: args.masterKey,
+        collectionPrefix: args.collectionPrefix || '',
+        clientKey: args.clientKey || '',
+        javascriptKey: args.javascriptKey || '',
+        dotNetKey: args.dotNetKey || '',
+        restAPIKey: args.restAPIKey || '',
+        fileKey: args.fileKey || 'invalid-file-key',
+        facebookAppIds: args.facebookAppIds || []
+    };
 
   // To maintain compatibility. TODO: Remove in v2.1
-  if (process.env.FACEBOOK_APP_ID) {
-    cache.apps[args.appId]['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
-  }
+    if (process.env.FACEBOOK_APP_ID) {
+        cache.apps[args.appId]['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
+    }
 
   // Initialize the node client SDK automatically
-  Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
+    Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
 
   // This app serves the Parse API directly.
   // It's the equivalent of https://api.parse.com/1 in the hosted Parse API.
-  var api = express();
+    var api = express();
 
   // File handling needs to be before default middlewares are applied
-  api.use('/', require('./handlers/files').router);
+    api.use('/', require('./handlers/files').router);
 
   // TODO: separate this from the regular ParseServer object
-  if (process.env.TESTING == 1) {
-    console.log('enabling integration testingRoutes');
-    api.use('/', require('./handlers/testingRoutes').router);
-  }
+    if (process.env.TESTING == 1) {
+        console.log('enabling integration testingRoutes');
+        api.use('/', require('./handlers/testingRoutes').router);
+    }
 
-  api.use(bodyParser.json({ 'type': '*/*' }));
-  api.use(middlewares.allowCrossDomain);
-  api.use(middlewares.allowMethodOverride);
-  api.use(middlewares.handleParseHeaders);
+    api.use(bodyParser.json({ 'type': '*/*' }));
+    api.use(middlewares.allowCrossDomain);
+    api.use(middlewares.allowMethodOverride);
+    api.use(middlewares.handleParseHeaders);
 
-  var router = new PromiseRouter();
+    var router = new PromiseRouter();
 
-  router.merge(require('./handlers/classes'));
-  router.merge(require('./handlers/users'));
-  router.merge(require('./handlers/sessions'));
-  router.merge(require('./handlers/roles'));
-  router.merge(require('./handlers/analytics'));
-  router.merge(require('./handlers/push'));
-  router.merge(require('./handlers/installations'));
-  router.merge(require('./handlers/functions'));
+    router.merge(require('./handlers/classes'));
+    router.merge(require('./handlers/users'));
+    router.merge(require('./handlers/sessions'));
+    router.merge(require('./handlers/roles'));
+    router.merge(require('./handlers/analytics'));
+    router.merge(require('./handlers/push'));
+    router.merge(require('./handlers/installations'));
+    router.merge(require('./handlers/functions'));
 
-  batch.mountOnto(router);
+    batch.mountOnto(router);
 
-  router.mountOnto(api);
+    router.mountOnto(api);
 
-  api.use(middlewares.handleParseErrors);
+    api.use(middlewares.handleParseErrors);
 
-  return api;
+    return api;
 }
 
 function addParseCloud() {
-  Parse.Cloud.Functions = {};
-  Parse.Cloud.Triggers = {
-    beforeSave: {},
-    beforeDelete: {},
-    afterSave: {},
-    afterDelete: {}
-  };
-  Parse.Cloud.define = function(functionName, handler) {
-    Parse.Cloud.Functions[functionName] = handler;
-  };
-  Parse.Cloud.beforeSave = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.beforeSave[className] = handler;
-  };
-  Parse.Cloud.beforeDelete = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.beforeDelete[className] = handler;
-  };
-  Parse.Cloud.afterSave = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.afterSave[className] = handler;
-  };
-  Parse.Cloud.afterDelete = function(parseClass, handler) {
-    var className = getClassName(parseClass);
-    Parse.Cloud.Triggers.afterDelete[className] = handler;
-  };
-  Parse.Cloud.httpRequest = function(options) {
-    var promise = new Parse.Promise();
-    var callbacks = {
-      success: options.success,
-      error: options.error
+    Parse.Cloud.Functions = {};
+    Parse.Cloud.Triggers = {
+        beforeSave: {},
+        beforeDelete: {},
+        afterSave: {},
+        afterDelete: {}
     };
-    delete options.success;
-    delete options.error;
-    if (options.uri && !options.url) {
-      options.uri = options.url;
-      delete options.url;
-    }
-    if (typeof options.body === 'object') {
-      options.body = JSON.stringify(options.body);
-    }
-    request(options, (error, response, body) => {
-      if (error) {
-        if (callbacks.error) {
-          return callbacks.error(error);
-        }
-        return promise.reject(error);
-      } else {
-        if (callbacks.success) {
-          return callbacks.success(body);
-        }
-        return promise.resolve(body);
+    Parse.Cloud.define = function(functionName, handler) {
+        Parse.Cloud.Functions[functionName] = handler;
+    };
+    Parse.Cloud.beforeSave = function(parseClass, handler) {
+        var className = getClassName(parseClass);
+        Parse.Cloud.Triggers.beforeSave[className] = handler;
+    };
+    Parse.Cloud.beforeDelete = function(parseClass, handler) {
+        var className = getClassName(parseClass);
+        Parse.Cloud.Triggers.beforeDelete[className] = handler;
+    };
+    Parse.Cloud.afterSave = function(parseClass, handler) {
+        var className = getClassName(parseClass);
+        Parse.Cloud.Triggers.afterSave[className] = handler;
+    };
+    Parse.Cloud.afterDelete = function(parseClass, handler) {
+        var className = getClassName(parseClass);
+        Parse.Cloud.Triggers.afterDelete[className] = handler;
+    };
+    Parse.Cloud.httpRequest = function(options) {
+        var promise = new Parse.Promise();
+        var callbacks = {
+          success: options.success,
+          error: options.error
+      };
+        delete options.success;
+        delete options.error;
+        if (options.uri && !options.url) {
+          options.uri = options.url;
+          delete options.url;
       }
-    });
-    return promise;
-  };
-  global.Parse = Parse;
+        if (typeof options.body === 'object') {
+          options.body = JSON.stringify(options.body);
+      }
+        request(options, (error, response, body) => {
+          if (error) {
+            if (callbacks.error) {
+              return callbacks.error(error);
+          }
+            return promise.reject(error);
+        } else {
+            if (callbacks.success) {
+              return callbacks.success(body);
+          }
+            return promise.resolve(body);
+        }
+      });
+        return promise;
+    };
+    global.Parse = Parse;
 }
 
 function getClassName(parseClass) {
-  if (parseClass && parseClass.className) {
-    return parseClass.className;
-  }
-  return parseClass;
+    if (parseClass && parseClass.className) {
+        return parseClass.className;
+    }
+    return parseClass;
 }
 
 module.exports = initParseServer;

@@ -2,26 +2,26 @@
 // configured.
 // mount is the URL for the root of the API; includes http, domain, etc.
 function Config(applicationId, mount) {
-  var cache = require('../utils/cache');
-  var DatabaseAdapter = require('./DatabaseAdapter');
+    var cache = require('../utils/cache');
+    var DatabaseAdapter = require('./DatabaseAdapter');
 
-  var cacheInfo = cache.apps[applicationId];
-  this.valid = !!cacheInfo;
-  if (!this.valid) {
-    return;
-  }
+    var cacheInfo = cache.apps[applicationId];
+    this.valid = !!cacheInfo;
+    if (!this.valid) {
+        return;
+    }
 
-  this.applicationId = applicationId;
-  this.collectionPrefix = cacheInfo.collectionPrefix || '';
-  this.database = DatabaseAdapter.getDatabaseConnection(applicationId);
-  this.masterKey = cacheInfo.masterKey;
-  this.clientKey = cacheInfo.clientKey;
-  this.javascriptKey = cacheInfo.javascriptKey;
-  this.dotNetKey = cacheInfo.dotNetKey;
-  this.restAPIKey = cacheInfo.restAPIKey;
-  this.fileKey = cacheInfo.fileKey;
-  this.facebookAppIds = cacheInfo.facebookAppIds;
-  this.mount = mount;
+    this.applicationId = applicationId;
+    this.collectionPrefix = cacheInfo.collectionPrefix || '';
+    this.database = DatabaseAdapter.getDatabaseConnection(applicationId);
+    this.masterKey = cacheInfo.masterKey;
+    this.clientKey = cacheInfo.clientKey;
+    this.javascriptKey = cacheInfo.javascriptKey;
+    this.dotNetKey = cacheInfo.dotNetKey;
+    this.restAPIKey = cacheInfo.restAPIKey;
+    this.fileKey = cacheInfo.fileKey;
+    this.facebookAppIds = cacheInfo.facebookAppIds;
+    this.mount = mount;
 }
 
 
