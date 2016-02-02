@@ -6,7 +6,8 @@
 // Tests that involve sending password reset emails.
 
 var request             = require('request');
-var passwordCrypto      = require('../src/utils/password');
+var path = require('path');
+var passwordCrypto      = require(path.resolve(projectRoot, 'src/utils/password'));
 
 describe('Parse.User testing', () => {
   it("user sign up class method", (done) => {

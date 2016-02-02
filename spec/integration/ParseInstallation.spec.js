@@ -1,11 +1,13 @@
 // These tests check the Installations functionality of the REST API.
 // Ported from installation_collection_test.go
 
-var cache               = require('../src/utils/cache');
-var rest                = require('../src/utils/rest');
-var Auth                = require('../src/classes/Auth');
-var Config              = require('../src/classes/Config');
-var DatabaseAdapter     = require('../src/classes/DatabaseAdapter');
+var path = require('path');
+
+var cache               = require(path.resolve(projectRoot, 'src/utils/cache'));
+var rest                = require(path.resolve(projectRoot, 'src/utils/rest'));
+var Auth                = require(path.resolve(projectRoot, 'src/classes/Auth'));
+var Config              = require(path.resolve(projectRoot, 'src/classes/Config'));
+var DatabaseAdapter     = require(path.resolve(projectRoot, 'src/classes/DatabaseAdapter'));
 var Parse               = require('parse/node').Parse;
 
 var config = new Config('test');

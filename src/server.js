@@ -6,12 +6,12 @@ var express             = require('express'),
     bodyParser          = require('body-parser'),
     Parse               = require('parse/node').Parse;
 
-var batch               = require('../utils/batch'),
-    cache               = require('../utils/cache'),
-    middlewares         = require('../middlewares'),
-    DatabaseAdapter     = require('./DatabaseAdapter'),
-    FilesAdapter        = require('./FilesAdapter'),
-    PromiseRouter       = require('./PromiseRouter');
+var batch               = require('./utils/batch'),
+    cache               = require('./utils/cache'),
+    middlewares         = require('./middlewares'),
+    DatabaseAdapter     = require('./classes/DatabaseAdapter'),
+    FilesAdapter        = require('./classes/FilesAdapter'),
+    PromiseRouter       = require('./classes/PromiseRouter');
 
 // Mutate the Parse object to add the Cloud Code handlers
 addParseCloud();
@@ -36,7 +36,7 @@ addParseCloud();
 // "dotNetKey": optional key from Parse dashboard
 // "restAPIKey": optional key from Parse dashboard
 // "javascriptKey": optional key from Parse dashboard
-function ParseServer(args) {
+function initParseServer(args) {
   if (!args.appId || !args.masterKey) {
     throw 'You must provide an appId and masterKey!';
   }
@@ -79,12 +79,12 @@ function ParseServer(args) {
   var api = express();
 
   // File handling needs to be before default middlewares are applied
-  api.use('/', require('../handlers/files').router);
+  api.use('/', require('./handlers/files').router);
 
   // TODO: separate this from the regular ParseServer object
   if (process.env.TESTING == 1) {
     console.log('enabling integration testingRoutes');
-    api.use('/', require('../handlers/testingRoutes').router);
+    api.use('/', require('./handlers/testingRoutes').router);
   }
 
   api.use(bodyParser.json({ 'type': '*/*' }));
@@ -94,14 +94,14 @@ function ParseServer(args) {
 
   var router = new PromiseRouter();
 
-  router.merge(require('../handlers/classes'));
-  router.merge(require('../handlers/users'));
-  router.merge(require('../handlers/sessions'));
-  router.merge(require('../handlers/roles'));
-  router.merge(require('../handlers/analytics'));
-  router.merge(require('../handlers/push'));
-  router.merge(require('../handlers/installations'));
-  router.merge(require('../handlers/functions'));
+  router.merge(require('./handlers/classes'));
+  router.merge(require('./handlers/users'));
+  router.merge(require('./handlers/sessions'));
+  router.merge(require('./handlers/roles'));
+  router.merge(require('./handlers/analytics'));
+  router.merge(require('./handlers/push'));
+  router.merge(require('./handlers/installations'));
+  router.merge(require('./handlers/functions'));
 
   batch.mountOnto(router);
 
@@ -179,4 +179,4 @@ function getClassName(parseClass) {
   return parseClass;
 }
 
-module.exports = ParseServer;
+module.exports = initParseServer;

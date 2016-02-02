@@ -1,8 +1,11 @@
 // These tests check the "find" functionality of the REST API.
-var cache               = require('../src/utils/cache');
-var rest                = require('../src/utils/rest');
-var Auth                = require('../src/classes/Auth');
-var Config              = require('../src/classes/Config');
+
+var path = require('path');
+
+var cache               = require(path.resolve(projectRoot, 'src/utils/cache'));
+var rest                = require(path.resolve(projectRoot, 'src/utils/rest'));
+var Auth                = require(path.resolve(projectRoot, 'src/classes/Auth'));
+var Config              = require(path.resolve(projectRoot, 'src/classes/Config'));
 
 var config = new Config('test');
 var nobody = Auth.nobody(config);
