@@ -1,0 +1,4 @@
+-R spec
+--require babel-polyfill
+--require test/helpers/chai
+--compilers js:babel-core/register

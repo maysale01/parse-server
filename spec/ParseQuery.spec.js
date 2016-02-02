@@ -1443,6 +1443,7 @@ describe('Parse.Query testing', () => {
       query.include("child");
       query.find({
         success: function(results) {
+            console.log(results);
           equal(results.length, 1);
           var parentAgain = results[0];
           var childAgain = parentAgain.get("child");

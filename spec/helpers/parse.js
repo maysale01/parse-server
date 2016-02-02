@@ -1,16 +1,14 @@
-// Sets up a Parse API server for testing.
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000;
-
-var cache = require('../src/utils/cache');
 var path = require('path');
-var DatabaseAdapter = require('../src/classes/DatabaseAdapter');
+var projectRoot = path.resolve(__dirname, "../../");
+
+var cache = require(path.resolve(projectRoot, 'src/utils/cache'));
+var DatabaseAdapter = require(path.resolve(projectRoot, 'src/classes/DatabaseAdapter'));
 var express = require('express');
-var facebook = require('../src/utils/facebook');
-var ParseServer = require('../src/classes/ParseServer');
+var facebook = require(path.resolve(projectRoot, 'src/utils/facebook'));
+var ParseServer = require(path.resolve(projectRoot, 'src/')).ParseServer;
 
 var databaseURI = process.env.DATABASE_URI;
-var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
+var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve(projectRoot, 'src/cloud/main.js');
 
 // Set up an API server for testing
 var api = new ParseServer({
@@ -34,10 +32,6 @@ var server = app.listen(port);
 // Set up a Parse client to talk to our test API server
 var Parse = require('parse/node');
 Parse.serverURL = 'http://localhost:' + port + '/1';
-
-// This is needed because we ported a bunch of tests from the non-A+ way.
-// TODO: update tests to work in an A+ way
-Parse.Promise.disableAPlusCompliant();
 
 beforeEach(function(done) {
   Parse.initialize('test', 'test', 'test');
@@ -98,17 +92,18 @@ function createTestUser(success, error) {
 function notWorking() {}
 
 // Shims for compatibility with the old qunit tests.
-function ok(bool, message) {
-  expect(bool).toBeTruthy(message);
+function ok(value, message) {
+  assert.ok(value, message);
 }
+
 function equal(a, b, message) {
-  expect(a).toEqual(b, message);
+  expect(a).to.equal(b, message);
 }
 function strictEqual(a, b, message) {
-  expect(a).toBe(b, message);
+  expect(a).to.equal(b, message);
 }
 function notEqual(a, b, message) {
-  expect(a).not.toEqual(b, message);
+  expect(a).not.to.equal(b, message);
 }
 function expectSuccess(params) {
   return {
@@ -132,7 +127,7 @@ function expectError(errorCode, callback) {
         fail('expected a specific error but got a blank error');
         return;
       }
-      expect(e.code).toEqual(errorCode, e.message);
+      expect(e.code).to.equal(errorCode, e.message);
       if (callback) {
         callback(e);
       }
@@ -165,7 +160,7 @@ function normalize(obj) {
 
 // Asserts two json structures are equal.
 function jequal(o1, o2) {
-  expect(normalize(o1)).toEqual(normalize(o2));
+  expect(normalize(o1)).to.equal(normalize(o2));
 }
 
 function range(n) {
@@ -193,7 +188,7 @@ function mockFacebook() {
 
 function clearData() {
   var promises = [];
-  for (conn in DatabaseAdapter.dbConnections) {
+  for (var conn in DatabaseAdapter.dbConnections) {
     promises.push(DatabaseAdapter.dbConnections[conn].deleteEverything());
   }
   return Promise.all(promises);

@@ -1,3 +1,7 @@
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 // triggers.js
 
 var Parse = require('parse/node').Parse;
@@ -9,23 +13,20 @@ var Types = {
   afterDelete: 'afterDelete'
 };
 
-var getTrigger = function(className, triggerType) {
-  if (Parse.Cloud.Triggers
-    && Parse.Cloud.Triggers[triggerType]
-    && Parse.Cloud.Triggers[triggerType][className]) {
+var getTrigger = function getTrigger(className, triggerType) {
+  if (Parse.Cloud.Triggers && Parse.Cloud.Triggers[triggerType] && Parse.Cloud.Triggers[triggerType][className]) {
     return Parse.Cloud.Triggers[triggerType][className];
   }
   return undefined;
 };
 
-var getRequestObject = function(triggerType, auth, parseObject, originalParseObject) {
+var getRequestObject = function getRequestObject(triggerType, auth, parseObject, originalParseObject) {
   var request = {
     triggerName: triggerType,
     object: parseObject,
     master: false
   };
   if (originalParseObject) {
-    console.log(originalParseObject);
     request.original = originalParseObject;
   }
   if (!auth) {
@@ -48,19 +49,19 @@ var getRequestObject = function(triggerType, auth, parseObject, originalParseObj
 // The API will call this with REST API formatted objects, this will
 // transform them to Parse.Object instances expected by Cloud Code.
 // Any changes made to the object in a beforeSave will be included.
-var getResponseObject = function(request, resolve, reject) {
+var getResponseObject = function getResponseObject(request, resolve, reject) {
   return {
-    success: function() {
+    success: function success() {
       var response = {};
       if (request.triggerName === Types.beforeSave) {
         response['object'] = request.object.toJSON();
       }
       return resolve(response);
     },
-    error: function(error) {
-      throw new Parse.Error(Parse.Error.SCRIPT_FAILED, error);
+    error: function error(_error) {
+      throw new Parse.Error(Parse.Error.SCRIPT_FAILED, _error);
     }
-  }
+  };
 };
 
 // To be used as part of the promise chain when saving/deleting an object
@@ -68,7 +69,7 @@ var getResponseObject = function(request, resolve, reject) {
 // Resolves to an object, empty or containing an object key. A beforeSave
 // trigger will set the object key to the rest format object to save.
 // originalParseObject is optional, we only need that for befote/afterSave functions
-var maybeRunTrigger = function(triggerType, auth, parseObject, originalParseObject) {
+var maybeRunTrigger = function maybeRunTrigger(triggerType, auth, parseObject, originalParseObject) {
   if (!parseObject) {
     return Promise.resolve({});
   }
@@ -84,7 +85,7 @@ var maybeRunTrigger = function(triggerType, auth, parseObject, originalParseObje
 // Converts a REST-format object to a Parse.Object
 // data is either className or an object
 function inflate(data, restObject) {
-  var copy = typeof data == 'object' ? data : {className: data};
+  var copy = (typeof data === 'undefined' ? 'undefined' : _typeof(data)) == 'object' ? data : { className: data };
   for (var key in restObject) {
     copy[key] = restObject[key];
   }

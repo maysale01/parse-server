@@ -1,5 +1,5 @@
-// This is a port of the test suite:
-// hungry/js/test/parse_acl_test.js
+var supertest = require('supertest');
+require('../spec/helpers/parse');
 
 describe('Parse.ACL', () => {
   it("acl must be valid", (done) => {
@@ -12,65 +12,48 @@ describe('Parse.ACL', () => {
     }), "setACL should have returned false.");
   });
 
-  it("refresh object with acl", (done) => {
+  it("refresh object with acl", async (done) => {
     // Create an object owned by Alice.
     var user = new Parse.User();
     user.set("username", "alice");
     user.set("password", "wonderland");
-    user.signUp(null, {
-      success: function() {
-        var object = new TestObject();
-        var acl = new Parse.ACL(user);
-        object.setACL(acl);
-        object.save(null, {
-          success: function() {
-            // Refreshing the object should succeed.
-            object.fetch({
-              success: function() {
-                done();
-              }
-            });
-          }
-        });
-      }
-    });
+    await user.signUp();
+    var object = new TestObject();
+    var acl = new Parse.ACL(user);
+    object.setACL(acl);
+    await object.save();
+    let results = await object.fetch();
+    console.log(results);
+    done();
   });
 
-  it("acl an object owned by one user and public get", (done) => {
+  it("acl an object owned by one user and public get", async (done) => {
     // Create an object owned by Alice.
     var user = new Parse.User();
     user.set("username", "alice");
     user.set("password", "wonderland");
-    user.signUp(null, {
-      success: function() {
-        var object = new TestObject();
-        var acl = new Parse.ACL(user);
-        object.setACL(acl);
-        object.save(null, {
-          success: function() {
-            equal(object.getACL().getReadAccess(user), true);
-            equal(object.getACL().getWriteAccess(user), true);
-            equal(object.getACL().getPublicReadAccess(), false);
-            equal(object.getACL().getPublicWriteAccess(), false);
-            ok(object.get("ACL"));
-            // Start making requests by the public, which should all fail.
-            Parse.User.logOut();
-            // Get
-            var query = new Parse.Query(TestObject);
-            query.get(object.id, {
-              success: function(model) {
-                fail('Should not have retrieved the object.');
-                done();
-              },
-              error: function(model, error) {
-                equal(error.code, Parse.Error.OBJECT_NOT_FOUND);
-                done();
-              }
-            });
-          }
-        });
-      }
-    });
+    await user.signUp();
+
+    var object = new TestObject();
+    var acl = new Parse.ACL(user);
+    object.setACL(acl);
+    let savedObject = await object.save();
+    equal(savedObject.getACL().getReadAccess(user), true);
+    equal(savedObject.getACL().getWriteAccess(user), true);
+    equal(savedObject.getACL().getPublicReadAccess(), false);
+    equal(savedObject.getACL().getPublicWriteAccess(), false);
+    ok(savedObject.get("ACL"));
+    await Parse.User.logOut();
+    
+    let query = new Parse.Query(TestObject);
+    try {
+        let queryResult = await query.get(object.id);
+        fail('Should not have retrieved the object.');
+        done();
+    } catch (error) {
+        equal(error.code, Parse.Error.OBJECT_NOT_FOUND);
+        done();
+    }
   });
 
   it("acl an object owned by one user and public find", (done) => {
@@ -171,7 +154,7 @@ describe('Parse.ACL', () => {
             object.destroy().then(() => {
               fail('destroy should fail');
             }, error => {
-              expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+              expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
               done();
             });
           }
@@ -470,7 +453,7 @@ describe('Parse.ACL', () => {
                 object.save().then(() => {
                   fail('the save should fail');
                 }, error => {
-                  expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+                  expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
                   done();
                 });
               }
@@ -515,7 +498,7 @@ describe('Parse.ACL', () => {
                 object.destroy().then(() => {
                   fail('expected failure');
                 }, error => {
-                  expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+                  expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
                   done();
                 });
               }
@@ -911,7 +894,7 @@ describe('Parse.ACL', () => {
                 query.get(object.id).then((result) => {
                   fail(result);
                 }, (error) => {
-                  expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+                  expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
                   done();
                 });
               }
@@ -993,7 +976,7 @@ describe('Parse.ACL', () => {
                 object.save().then(() => {
                   fail('expected failure');
                 }, (error) => {
-                  expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+                  expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
                   done();
                 });
               }
@@ -1033,7 +1016,7 @@ describe('Parse.ACL', () => {
                 object.destroy().then(() => {
                   fail('expected failure');
                 }, (error) => {
-                  expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND);
+                  expect(error.code).to.equal(Parse.Error.OBJECT_NOT_FOUND);
                   done();
                 });
               }
