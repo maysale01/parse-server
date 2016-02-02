@@ -7,7 +7,7 @@ var cache = require('../../src/utils/cache');
 var DatabaseAdapter = require('../../src/classes/DatabaseAdapter');
 var express = require('express');
 var facebook = require('../../src/utils/facebook');
-var ParseServer = require('../../src/classes/ParseServer');
+var ParseServer = require('../../src/server');
 
 var databaseURI = process.env.DATABASE_URI;
 var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');

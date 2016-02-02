@@ -79,12 +79,12 @@ function ParseServer(args) {
   var api = express();
 
   // File handling needs to be before default middlewares are applied
-  api.use('/', require('../handlers/files').router);
+  api.use('/', require('./handlers/files').router);
 
   // TODO: separate this from the regular ParseServer object
   if (process.env.TESTING == 1) {
     console.log('enabling integration testingRoutes');
-    api.use('/', require('../handlers/testingRoutes').router);
+    api.use('/', require('./handlers/testingRoutes').router);
   }
 
   api.use(bodyParser.json({ 'type': '*/*' }));
@@ -94,14 +94,14 @@ function ParseServer(args) {
 
   var router = new PromiseRouter();
 
-  router.merge(require('../handlers/classes'));
-  router.merge(require('../handlers/users'));
-  router.merge(require('../handlers/sessions'));
-  router.merge(require('../handlers/roles'));
-  router.merge(require('../handlers/analytics'));
-  router.merge(require('../handlers/push'));
-  router.merge(require('../handlers/installations'));
-  router.merge(require('../handlers/functions'));
+  router.merge(require('./handlers/classes'));
+  router.merge(require('./handlers/users'));
+  router.merge(require('./handlers/sessions'));
+  router.merge(require('./handlers/roles'));
+  router.merge(require('./handlers/analytics'));
+  router.merge(require('./handlers/push'));
+  router.merge(require('./handlers/installations'));
+  router.merge(require('./handlers/functions'));
 
   batch.mountOnto(router);
 
