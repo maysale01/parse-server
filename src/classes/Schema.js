@@ -36,26 +36,26 @@ function Schema(collection, mongoSchema) {
         var classData = {};
         var permsData = null;
         for (var key in obj) {
-          var value = obj[key];
-          switch(key) {
-        case '_id':
-            className = value;
-            break;
-        case '_metadata':
-            if (value && value['class_permissions']) {
-              permsData = value['class_permissions'];
-          }
-            break;
-        default:
-            classData[key] = value;
+            var value = obj[key];
+            switch(key) {
+            case '_id':
+                className = value;
+                break;
+            case '_metadata':
+                if (value && value['class_permissions']) {
+                    permsData = value['class_permissions'];
+                }
+                break;
+            default:
+                classData[key] = value;
+            }
         }
-      }
         if (className) {
-          this.data[className] = classData;
-          if (permsData) {
-            this.perms[className] = permsData;
+            this.data[className] = classData;
+            if (permsData) {
+                this.perms[className] = permsData;
+            }
         }
-      }
     }
 }
 
@@ -94,20 +94,20 @@ Schema.prototype.validateClassName = function(className, freeze) {
         return this.reload();
     }).then((schema) => {
     // Ensure that the schema now validates
-      return schema.validateClassName(className, true);
-  }, (error) => {
+        return schema.validateClassName(className, true);
+    }, (error) => {
     // The schema still doesn't validate. Give up
-      throw new Parse.Error(Parse.Error.INVALID_JSON,
+        throw new Parse.Error(Parse.Error.INVALID_JSON,
                           'schema class name does not revalidate');
-  });
+    });
 };
 
 // Returns whether the schema knows the type of all these keys.
 Schema.prototype.hasKeys = function(className, keys) {
     for (var key of keys) {
         if (!this.data[className] || !this.data[className][key]) {
-          return false;
-      }
+            return false;
+        }
     }
     return true;
 };
@@ -118,8 +118,8 @@ Schema.prototype.setPermissions = function(className, perms) {
     var query = {_id: className};
     var update = {
         _metadata: {
-          class_permissions: perms
-      }
+            class_permissions: perms
+        }
     };
     update = {'$set': update};
     return this.collection.findAndModify(query, {}, update, {}).then(() => {
@@ -140,13 +140,13 @@ Schema.prototype.validateField = function(className, key, type, freeze) {
     if (expected) {
         expected = (expected === 'map' ? 'object' : expected);
         if (expected === type) {
-          return Promise.resolve(this);
-      } else {
-          throw new Parse.Error(
+            return Promise.resolve(this);
+        } else {
+            throw new Parse.Error(
         Parse.Error.INCORRECT_TYPE,
         'schema mismatch for ' + className + '.' + key +
           '; expected ' + expected + ' but got ' + type);
-      }
+        }
     }
 
     if (freeze) {
@@ -163,12 +163,12 @@ Schema.prototype.validateField = function(className, key, type, freeze) {
     if (type === 'geopoint') {
     // Make sure there are not other geopoint fields
         for (var otherKey in this.data[className]) {
-          if (this.data[className][otherKey] === 'geopoint') {
-            throw new Parse.Error(
+            if (this.data[className][otherKey] === 'geopoint') {
+                throw new Parse.Error(
           Parse.Error.INCORRECT_TYPE,
           'there can only be one geopoint field in a class');
+            }
         }
-      }
     }
 
   // We don't have this field. Update the schema.
@@ -189,12 +189,12 @@ Schema.prototype.validateField = function(className, key, type, freeze) {
         return this.reload();
     }).then((schema) => {
     // Ensure that the schema now validates
-      return schema.validateField(className, key, type, true);
-  }, (error) => {
+        return schema.validateField(className, key, type, true);
+    }, (error) => {
     // The schema still doesn't validate. Give up
-      throw new Parse.Error(Parse.Error.INVALID_JSON,
+        throw new Parse.Error(Parse.Error.INVALID_JSON,
                           'schema key will not revalidate');
-  });
+    });
 };
 
 // Given a schema promise, construct another schema promise that
@@ -214,16 +214,16 @@ Schema.prototype.validateObject = function(className, object) {
     for (var key in object) {
         var expected = getType(object[key]);
         if (expected === 'geopoint') {
-          geocount++;
-      }
+            geocount++;
+        }
         if (geocount > 1) {
-          throw new Parse.Error(
+            throw new Parse.Error(
         Parse.Error.INCORRECT_TYPE,
         'there can only be one geopoint field in a class');
-      }
+        }
         if (!expected) {
-          continue;
-      }
+            continue;
+        }
         promise = thenValidateField(promise, className, key, expected);
     }
     return promise;
@@ -243,8 +243,8 @@ Schema.prototype.validatePermission = function(className, aclGroup, operation) {
     var found = false;
     for (var i = 0; i < aclGroup.length && !found; i++) {
         if (perms[aclGroup[i]]) {
-          found = true;
-      }
+            found = true;
+        }
     }
     if (!found) {
     // TODO: Verify correct error code
@@ -286,8 +286,8 @@ function getType(obj) {
     case 'map':
     case 'object':
         if (!obj) {
-          return undefined;
-      }
+            return undefined;
+        }
         return getObjectType(obj);
     case 'function':
     case 'symbol':
@@ -323,22 +323,22 @@ function getObjectType(obj) {
     }
     if (obj.__op) {
         switch(obj.__op) {
-      case 'Increment':
-          return 'number';
-      case 'Delete':
-          return null;
-      case 'Add':
-      case 'AddUnique':
-      case 'Remove':
-          return 'array';
-      case 'AddRelation':
-      case 'RemoveRelation':
-          return 'relation<' + obj.objects[0].className + '>';
-      case 'Batch':
-          return getObjectType(obj.ops[0]);
-      default:
-          throw 'unexpected op: ' + obj.__op;
-      }
+        case 'Increment':
+            return 'number';
+        case 'Delete':
+            return null;
+        case 'Add':
+        case 'AddUnique':
+        case 'Remove':
+            return 'array';
+        case 'AddRelation':
+        case 'RemoveRelation':
+            return 'relation<' + obj.objects[0].className + '>';
+        case 'Batch':
+            return getObjectType(obj.ops[0]);
+        default:
+            throw 'unexpected op: ' + obj.__op;
+        }
     }
     return 'object';
 }

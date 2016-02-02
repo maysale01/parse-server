@@ -43,7 +43,7 @@ function del(config, auth, className, objectId) {
         if (triggers.getTrigger(className, 'beforeDelete') ||
         triggers.getTrigger(className, 'afterDelete') ||
         className == '_Session') {
-          return find(config, auth, className, {objectId: objectId})
+            return find(config, auth, className, {objectId: objectId})
       .then((response) => {
           if (response && response.results && response.results.length) {
               response.results[0].className = className;
@@ -55,24 +55,24 @@ function del(config, auth, className, objectId) {
           throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                               'Object not found for delete.');
       });
-      }
+        }
         return Promise.resolve({});
     }).then(() => {
-      var options = {};
-      if (!auth.isMaster) {
-          options.acl = ['*'];
-          if (auth.user) {
-            options.acl.push(auth.user.id);
+        var options = {};
+        if (!auth.isMaster) {
+            options.acl = ['*'];
+            if (auth.user) {
+                options.acl.push(auth.user.id);
+            }
         }
-      }
 
-      return config.database.destroy(className, {
-          objectId: objectId
-      }, options);
-  }).then(() => {
-      triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
-      return Promise.resolve();
-  });
+        return config.database.destroy(className, {
+            objectId: objectId
+        }, options);
+    }).then(() => {
+        triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
+        return Promise.resolve();
+    });
 }
 
 // Returns a promise for a {response, status, location} object.
@@ -92,19 +92,19 @@ function update(config, auth, className, objectId, restObject) {
     return Promise.resolve().then(() => {
         if (triggers.getTrigger(className, 'beforeSave') ||
         triggers.getTrigger(className, 'afterSave')) {
-          return find(config, auth, className, {objectId: objectId});
-      }
+            return find(config, auth, className, {objectId: objectId});
+        }
         return Promise.resolve({});
     }).then((response) => {
-      var originalRestObject;
-      if (response && response.results && response.results.length) {
-          originalRestObject = response.results[0];
-      }
+        var originalRestObject;
+        if (response && response.results && response.results.length) {
+            originalRestObject = response.results[0];
+        }
 
-      var write = new RestWrite(config, auth, className,
+        var write = new RestWrite(config, auth, className,
                               {objectId: objectId}, restObject, originalRestObject);
-      return write.execute();
-  });
+        return write.execute();
+    });
 }
 
 // Disallowing access to the _Role collection except by master key

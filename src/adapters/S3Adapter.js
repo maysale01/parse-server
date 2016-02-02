@@ -5,8 +5,8 @@
 var AWS = require('aws-sdk');
 var path = require('path');
 
-var DEFAULT_REGION = "us-east-1";
-var DEFAULT_BUCKET = "parse-files";
+var DEFAULT_REGION = 'us-east-1';
+var DEFAULT_BUCKET = 'parse-files';
 
 // Creates an S3 session.
 // Providing AWS access and secret keys is mandatory
@@ -16,7 +16,7 @@ function S3Adapter(accessKey, secretKey, options) {
 
     this.region = options.region || DEFAULT_REGION;
     this.bucket = options.bucket || DEFAULT_BUCKET;
-    this.bucketPrefix = options.bucketPrefix || "";
+    this.bucketPrefix = options.bucketPrefix || '';
     this.directAccess = options.directAccess || false;
 
     s3Options = {
@@ -41,9 +41,9 @@ S3Adapter.prototype.create = function(config, filename, data) {
 
     return new Promise((resolve, reject) => {
         this.s3.upload(params, function(err, data) {
-          if (err !== null) return reject(err);
-          resolve(data);
-      });
+            if (err !== null) return reject(err);
+            resolve(data);
+        });
     });
 };
 
@@ -54,9 +54,9 @@ S3Adapter.prototype.get = function(config, filename) {
 
     return new Promise((resolve, reject) => {
         this.s3.getObject(params, (err, data) => {
-          if (err !== null) return reject(err);
-          resolve(data.Body);
-      });
+            if (err !== null) return reject(err);
+            resolve(data.Body);
+        });
     });
 };
 

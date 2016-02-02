@@ -24,20 +24,20 @@ function RestQuery(config, auth, className, restWhere, restOptions) {
     if (!this.auth.isMaster) {
         this.findOptions.acl = this.auth.user ? [this.auth.user.id] : null;
         if (this.className == '_Session') {
-          if (!this.findOptions.acl) {
-            throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN,
+            if (!this.findOptions.acl) {
+                throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN,
                               'This session token is invalid.');
-        }
-          this.restWhere = {
-            '$and': [this.restWhere, {
-              'user': {
-                __type: 'Pointer',
-                className: '_User',
-                objectId: this.auth.user.id
             }
-          }]
-        };
-      }
+            this.restWhere = {
+                '$and': [this.restWhere, {
+                    'user': {
+                        __type: 'Pointer',
+                        className: '_User',
+                        objectId: this.auth.user.id
+                    }
+                }]
+            };
+        }
     }
 
     this.doCount = false;
@@ -52,55 +52,55 @@ function RestQuery(config, auth, className, restWhere, restOptions) {
 
     for (var option in restOptions) {
         switch(option) {
-      case 'keys':
-          this.keys = new Set(restOptions.keys.split(','));
-          this.keys.add('objectId');
-          this.keys.add('createdAt');
-          this.keys.add('updatedAt');
-          break;
-      case 'count':
-          this.doCount = true;
-          break;
-      case 'skip':
-      case 'limit':
-          this.findOptions[option] = restOptions[option];
-          break;
-      case 'order':
-          var fields = restOptions.order.split(',');
-          var sortMap = {};
-          for (var field of fields) {
-            if (field[0] == '-') {
-              sortMap[field.slice(1)] = -1;
-          } else {
-              sortMap[field] = 1;
-          }
-        }
-          this.findOptions.sort = sortMap;
-          break;
-      case 'include':
-          var paths = restOptions.include.split(',');
-          var pathSet = {};
-          for (var path of paths) {
+        case 'keys':
+            this.keys = new Set(restOptions.keys.split(','));
+            this.keys.add('objectId');
+            this.keys.add('createdAt');
+            this.keys.add('updatedAt');
+            break;
+        case 'count':
+            this.doCount = true;
+            break;
+        case 'skip':
+        case 'limit':
+            this.findOptions[option] = restOptions[option];
+            break;
+        case 'order':
+            var fields = restOptions.order.split(',');
+            var sortMap = {};
+            for (var field of fields) {
+                if (field[0] == '-') {
+                    sortMap[field.slice(1)] = -1;
+                } else {
+                    sortMap[field] = 1;
+                }
+            }
+            this.findOptions.sort = sortMap;
+            break;
+        case 'include':
+            var paths = restOptions.include.split(',');
+            var pathSet = {};
+            for (var path of paths) {
         // Add all prefixes with a .-split to pathSet
-            var parts = path.split('.');
-            for (var len = 1; len <= parts.length; len++) {
-              pathSet[parts.slice(0, len).join('.')] = true;
-          }
-        }
-          this.include = Object.keys(pathSet).sort((a, b) => {
-            return a.length - b.length;
-        }).map((s) => {
-          return s.split('.');
-      });
-          break;
-      case 'redirectClassNameForKey':
-          this.redirectKey = restOptions.redirectClassNameForKey;
-          this.redirectClassName = null;
-          break;
-      default:
-          throw new Parse.Error(Parse.Error.INVALID_JSON,
+                var parts = path.split('.');
+                for (var len = 1; len <= parts.length; len++) {
+                    pathSet[parts.slice(0, len).join('.')] = true;
+                }
+            }
+            this.include = Object.keys(pathSet).sort((a, b) => {
+                return a.length - b.length;
+            }).map((s) => {
+                return s.split('.');
+            });
+            break;
+        case 'redirectClassNameForKey':
+            this.redirectKey = restOptions.redirectClassNameForKey;
+            this.redirectClassName = null;
+            break;
+        default:
+            throw new Parse.Error(Parse.Error.INVALID_JSON,
                             'bad option: ' + option);
-      }
+        }
     }
 }
 
@@ -113,24 +113,24 @@ RestQuery.prototype.execute = function() {
     return Promise.resolve().then(() => {
         return this.getUserAndRoleACL();
     }).then(() => {
-      return this.redirectClassNameForKey();
-  }).then(() => {
-      return this.replaceSelect();
-  }).then(() => {
-      return this.replaceDontSelect();
-  }).then(() => {
-      return this.replaceInQuery();
-  }).then(() => {
-      return this.replaceNotInQuery();
-  }).then(() => {
-      return this.runFind();
-  }).then(() => {
-      return this.runCount();
-  }).then(() => {
-      return this.handleInclude();
-  }).then(() => {
-      return this.response;
-  });
+        return this.redirectClassNameForKey();
+    }).then(() => {
+        return this.replaceSelect();
+    }).then(() => {
+        return this.replaceDontSelect();
+    }).then(() => {
+        return this.replaceInQuery();
+    }).then(() => {
+        return this.replaceNotInQuery();
+    }).then(() => {
+        return this.runFind();
+    }).then(() => {
+        return this.runCount();
+    }).then(() => {
+        return this.handleInclude();
+    }).then(() => {
+        return this.response;
+    });
 };
 
 // Uses the Auth object to get the list of roles, adds the user id
@@ -183,12 +183,12 @@ RestQuery.prototype.replaceInQuery = function() {
     return subquery.execute().then((response) => {
         var values = [];
         for (var result of response.results) {
-          values.push({
-            __type: 'Pointer',
-            className: inQueryValue.className,
-            objectId: result.objectId
-        });
-      }
+            values.push({
+                __type: 'Pointer',
+                className: inQueryValue.className,
+                objectId: result.objectId
+            });
+        }
         delete inQueryObject['$inQuery'];
         inQueryObject['$in'] = values;
 
@@ -220,12 +220,12 @@ RestQuery.prototype.replaceNotInQuery = function() {
     return subquery.execute().then((response) => {
         var values = [];
         for (var result of response.results) {
-          values.push({
-            __type: 'Pointer',
-            className: notInQueryValue.className,
-            objectId: result.objectId
-        });
-      }
+            values.push({
+                __type: 'Pointer',
+                className: notInQueryValue.className,
+                objectId: result.objectId
+            });
+        }
         delete notInQueryObject['$notInQuery'];
         notInQueryObject['$nin'] = values;
 
@@ -263,8 +263,8 @@ RestQuery.prototype.replaceSelect = function() {
     return subquery.execute().then((response) => {
         var values = [];
         for (var result of response.results) {
-          values.push(result[selectValue.key]);
-      }
+            values.push(result[selectValue.key]);
+        }
         delete selectObject['$select'];
         selectObject['$in'] = values;
 
@@ -302,8 +302,8 @@ RestQuery.prototype.replaceDontSelect = function() {
     return subquery.execute().then((response) => {
         var values = [];
         for (var result of response.results) {
-          values.push(result[dontSelectValue.key]);
-      }
+            values.push(result[dontSelectValue.key]);
+        }
         delete dontSelectObject['$dontSelect'];
         dontSelectObject['$nin'] = values;
 
@@ -319,8 +319,8 @@ RestQuery.prototype.runFind = function() {
     this.className, this.restWhere, this.findOptions).then((results) => {
         if (this.className == '_User') {
             for (var result of results) {
-              delete result.password;
-          }
+                delete result.password;
+            }
         }
 
         updateParseFiles(this.config, results);
@@ -328,20 +328,20 @@ RestQuery.prototype.runFind = function() {
         if (this.keys) {
             var keySet = this.keys;
             results = results.map((object) => {
-              var newObject = {};
-              for (var key in object) {
-                if (keySet.has(key)) {
-                  newObject[key] = object[key];
-              }
-            }
-              return newObject;
-          });
+                var newObject = {};
+                for (var key in object) {
+                    if (keySet.has(key)) {
+                        newObject[key] = object[key];
+                    }
+                }
+                return newObject;
+            });
         }
 
         if (this.redirectClassName) {
             for (var r of results) {
-              r.className = this.redirectClassName;
-          }
+                r.className = this.redirectClassName;
+            }
         }
 
         this.response = {results: results};
@@ -372,10 +372,10 @@ RestQuery.prototype.handleInclude = function() {
                                  this.response, this.include[0]);
     if (pathResponse.then) {
         return pathResponse.then((newResponse) => {
-          this.response = newResponse;
-          this.include = this.include.slice(1);
-          return this.handleInclude();
-      });
+            this.response = newResponse;
+            this.include = this.include.slice(1);
+            return this.handleInclude();
+        });
     }
     return pathResponse;
 };
@@ -392,13 +392,13 @@ function includePath(config, auth, response, path) {
     var objectIds = {};
     for (var pointer of pointers) {
         if (className === null) {
-          className = pointer.className;
-      } else {
-          if (className != pointer.className) {
-            throw new Parse.Error(Parse.Error.INVALID_JSON,
+            className = pointer.className;
+        } else {
+            if (className != pointer.className) {
+                throw new Parse.Error(Parse.Error.INVALID_JSON,
                               'inconsistent type data for include');
+            }
         }
-      }
         objectIds[pointer.objectId] = true;
     }
     if (!className) {
@@ -412,16 +412,16 @@ function includePath(config, auth, response, path) {
     return query.execute().then((includeResponse) => {
         var replace = {};
         for (var obj of includeResponse.results) {
-          obj.__type = 'Object';
-          obj.className = className;
-          replace[obj.objectId] = obj;
-      }
+            obj.__type = 'Object';
+            obj.className = className;
+            replace[obj.objectId] = obj;
+        }
         var resp = {
-          results: replacePointers(response.results, path, replace)
-      };
+            results: replacePointers(response.results, path, replace)
+        };
         if (response.count) {
-          resp.count = response.count;
-      }
+            resp.count = response.count;
+        }
         return resp;
     });
 }
@@ -435,8 +435,8 @@ function findPointers(object, path) {
     if (object instanceof Array) {
         var answer = [];
         for (var x of object) {
-          answer = answer.concat(findPointers(x, path));
-      }
+            answer = answer.concat(findPointers(x, path));
+        }
         return answer;
     }
 
@@ -447,8 +447,8 @@ function findPointers(object, path) {
 
     if (path.length == 0) {
         if (object.__type == 'Pointer') {
-          return [object];
-      }
+            return [object];
+        }
         throw new Parse.Error(Parse.Error.INVALID_QUERY,
                           'can only include pointer fields');
     }
@@ -477,8 +477,8 @@ function replacePointers(object, path, replace) {
 
     if (path.length == 0) {
         if (object.__type == 'Pointer' && replace[object.objectId]) {
-          return replace[object.objectId];
-      }
+            return replace[object.objectId];
+        }
         return object;
     }
 
@@ -490,10 +490,10 @@ function replacePointers(object, path, replace) {
     var answer = {};
     for (var key in object) {
         if (key == path[0]) {
-          answer[key] = newsub;
-      } else {
-          answer[key] = object[key];
-      }
+            answer[key] = newsub;
+        } else {
+            answer[key] = object[key];
+        }
     }
     return answer;
 }
@@ -512,18 +512,18 @@ function updateParseFiles(config, object) {
     for (var key in object) {
         if (object[key] &&  object[key]['__type'] &&
         object[key]['__type'] == 'File') {
-          var filename = object[key]['name'];
-          var encoded = encodeURIComponent(filename);
-          encoded = encoded.replace('%40', '@');
-          if (filename.indexOf('tfss-') === 0) {
-            object[key]['url'] = 'http://files.parsetfss.com/' +
+            var filename = object[key]['name'];
+            var encoded = encodeURIComponent(filename);
+            encoded = encoded.replace('%40', '@');
+            if (filename.indexOf('tfss-') === 0) {
+                object[key]['url'] = 'http://files.parsetfss.com/' +
           config.fileKey + '/' + encoded;
-        } else {
-            object[key]['url'] = config.mount + '/files/' +
+            } else {
+                object[key]['url'] = config.mount + '/files/' +
                            config.applicationId + '/' +
                            encoded;
+            }
         }
-      }
     }
 }
 
@@ -535,11 +535,11 @@ function findObjectWithKey(root, key) {
     }
     if (root instanceof Array) {
         for (var item of root) {
-          var answer = findObjectWithKey(item, key);
-          if (answer) {
-            return answer;
+            var answer = findObjectWithKey(item, key);
+            if (answer) {
+                return answer;
+            }
         }
-      }
     }
     if (root && root[key]) {
         return root;
@@ -547,8 +547,8 @@ function findObjectWithKey(root, key) {
     for (var subkey in root) {
         var answer = findObjectWithKey(root[subkey], key);
         if (answer) {
-          return answer;
-      }
+            return answer;
+        }
     }
 }
 

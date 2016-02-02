@@ -13,10 +13,10 @@ function create(config, filename, data) {
         var gridStore = new GridStore(config.database.db, filename, 'w');
         return gridStore.open();
     }).then((gridStore) => {
-      return gridStore.write(data);
-  }).then((gridStore) => {
-      return gridStore.close();
-  });
+        return gridStore.write(data);
+    }).then((gridStore) => {
+        return gridStore.close();
+    });
 }
 
 // Search for and return a file if found by filename
@@ -26,11 +26,11 @@ function get(config, filename) {
     return config.database.connect().then(() => {
         return GridStore.exist(config.database.db, filename);
     }).then(() => {
-      var gridStore = new GridStore(config.database.db, filename, 'r');
-      return gridStore.open();
-  }).then((gridStore) => {
-      return gridStore.read();
-  });
+        var gridStore = new GridStore(config.database.db, filename, 'r');
+        return gridStore.open();
+    }).then((gridStore) => {
+        return gridStore.read();
+    });
 }
 
 // Generates and returns the location of a file stored in GridStore for the

@@ -59,8 +59,8 @@ var getAuthForSessionToken = function(config, sessionToken) {
     return query.execute().then((response) => {
         var results = response.results;
         if (results.length !== 1 || !results[0]['user']) {
-          return nobody(config);
-      }
+            return nobody(config);
+        }
         var obj = results[0]['user'];
         delete obj.password;
         obj['className'] = '_User';
@@ -89,10 +89,10 @@ Auth.prototype.getUserRoles = function() {
 Auth.prototype._loadRoles = function() {
     var restWhere = {
         'users': {
-          __type: 'Pointer',
-          className: '_User',
-          objectId: this.user.id
-      }
+            __type: 'Pointer',
+            className: '_User',
+            objectId: this.user.id
+        }
     };
   // First get the role ids this user is directly a member of
     var query = new RestQuery(this.config, master(this.config), '_Role',
@@ -100,39 +100,39 @@ Auth.prototype._loadRoles = function() {
     return query.execute().then((response) => {
         var results = response.results;
         if (!results.length) {
-          this.userRoles = [];
-          this.fetchedRoles = true;
-          this.rolePromise = null;
-          return Promise.resolve(this.userRoles);
-      }
+            this.userRoles = [];
+            this.fetchedRoles = true;
+            this.rolePromise = null;
+            return Promise.resolve(this.userRoles);
+        }
 
         var roleIDs = results.map(r => r.objectId);
         var promises = [Promise.resolve(roleIDs)];
         for (var role of roleIDs) {
-          promises.push(this._getAllRoleNamesForId(role));
-      }
-        return Promise.all(promises).then((results) => {
-          var allIDs = [];
-          for (var x of results) {
-            Array.prototype.push.apply(allIDs, x);
+            promises.push(this._getAllRoleNamesForId(role));
         }
-          var restWhere = {
-            objectId: {
-              '$in': allIDs
-          }
-        };
-          var query = new RestQuery(this.config, master(this.config),
+        return Promise.all(promises).then((results) => {
+            var allIDs = [];
+            for (var x of results) {
+                Array.prototype.push.apply(allIDs, x);
+            }
+            var restWhere = {
+                objectId: {
+                    '$in': allIDs
+                }
+            };
+            var query = new RestQuery(this.config, master(this.config),
                                 '_Role', restWhere, {});
-          return query.execute();
-      }).then((response) => {
-        var results = response.results;
-        this.userRoles = results.map((r) => {
-            return 'role:' + r.name;
+            return query.execute();
+        }).then((response) => {
+            var results = response.results;
+            this.userRoles = results.map((r) => {
+                return 'role:' + r.name;
+            });
+            this.fetchedRoles = true;
+            this.rolePromise = null;
+            return Promise.resolve(this.userRoles);
         });
-        this.fetchedRoles = true;
-        this.rolePromise = null;
-        return Promise.resolve(this.userRoles);
-    });
     });
 };
 
@@ -146,17 +146,17 @@ Auth.prototype._getAllRoleNamesForId = function(roleID) {
     };
     var restWhere = {
         '$relatedTo': {
-          key: 'roles',
-          object: rolePointer
-      }
+            key: 'roles',
+            object: rolePointer
+        }
     };
     var query = new RestQuery(this.config, master(this.config), '_Role',
                             restWhere, {});
     return query.execute().then((response) => {
         var results = response.results;
         if (!results.length) {
-          return Promise.resolve([]);
-      }
+            return Promise.resolve([]);
+        }
         var roleIDs = results.map(r => r.objectId);
         return Promise.resolve(roleIDs);
     });

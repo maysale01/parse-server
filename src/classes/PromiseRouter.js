@@ -53,8 +53,8 @@ PromiseRouter.prototype.route = function(method, path, handler) {
 PromiseRouter.prototype.match = function(method, path) {
     for (var route of this.routes) {
         if (route.method != method) {
-          continue;
-      }
+            continue;
+        }
 
     // NOTE: we can only route the specific wildcards :className and
     // :objectId, and in that order.
@@ -69,15 +69,15 @@ PromiseRouter.prototype.match = function(method, path) {
         var re = new RegExp(pattern);
         var m = path.match(re);
         if (!m) {
-          continue;
-      }
+            continue;
+        }
         var params = {};
         if (m[1]) {
-          params.className = m[1];
-      }
+            params.className = m[1];
+        }
         if (m[2]) {
-          params.objectId = m[2];
-      }
+            params.objectId = m[2];
+        }
 
         return {params: params, handler: route.handler};
     }
@@ -90,36 +90,36 @@ PromiseRouter.prototype.match = function(method, path) {
 function makeExpressHandler(promiseHandler) {
     return function(req, res, next) {
         try {
-          if (PromiseRouter.verbose) {
-            console.log(req.method, req.originalUrl, req.headers,
+            if (PromiseRouter.verbose) {
+                console.log(req.method, req.originalUrl, req.headers,
                     JSON.stringify(req.body, null, 2));
-        }
-          promiseHandler(req).then((result) => {
-            if (!result.response) {
-              console.log('BUG: the handler did not include a "response" field');
-              throw 'control should not get here';
-          }
+            }
+            promiseHandler(req).then((result) => {
+                if (!result.response) {
+                    console.log('BUG: the handler did not include a "response" field');
+                    throw 'control should not get here';
+                }
+                if (PromiseRouter.verbose) {
+                    console.log('response:', JSON.stringify(result.response, null, 2));
+                }
+                var status = result.status || 200;
+                res.status(status);
+                if (result.location) {
+                    res.set('Location', result.location);
+                }
+                res.json(result.response);
+            }, (e) => {
+                if (PromiseRouter.verbose) {
+                    console.log('error:', e);
+                }
+                next(e);
+            });
+        } catch (e) {
             if (PromiseRouter.verbose) {
-              console.log('response:', JSON.stringify(result.response, null, 2));
-          }
-            var status = result.status || 200;
-            res.status(status);
-            if (result.location) {
-              res.set('Location', result.location);
-          }
-            res.json(result.response);
-        }, (e) => {
-            if (PromiseRouter.verbose) {
-              console.log('error:', e);
-          }
+                console.log('error:', e);
+            }
             next(e);
-        });
-      } catch (e) {
-        if (PromiseRouter.verbose) {
-            console.log('error:', e);
         }
-        next(e);
-    }
     };
 }
 
@@ -127,21 +127,21 @@ function makeExpressHandler(promiseHandler) {
 PromiseRouter.prototype.mountOnto = function(expressApp) {
     for (var route of this.routes) {
         switch(route.method) {
-      case 'POST':
-          expressApp.post(route.path, makeExpressHandler(route.handler));
-          break;
-      case 'GET':
-          expressApp.get(route.path, makeExpressHandler(route.handler));
-          break;
-      case 'PUT':
-          expressApp.put(route.path, makeExpressHandler(route.handler));
-          break;
-      case 'DELETE':
-          expressApp.delete(route.path, makeExpressHandler(route.handler));
-          break;
-      default:
-          throw 'unexpected code branch';
-      }
+        case 'POST':
+            expressApp.post(route.path, makeExpressHandler(route.handler));
+            break;
+        case 'GET':
+            expressApp.get(route.path, makeExpressHandler(route.handler));
+            break;
+        case 'PUT':
+            expressApp.put(route.path, makeExpressHandler(route.handler));
+            break;
+        case 'DELETE':
+            expressApp.delete(route.path, makeExpressHandler(route.handler));
+            break;
+        default:
+            throw 'unexpected code branch';
+        }
     }
 };
 

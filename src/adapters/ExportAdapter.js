@@ -36,8 +36,8 @@ ExportAdapter.prototype.connect = function() {
     this.connectionPromise = Promise.resolve().then(() => {
         return MongoClient.connect(this.mongoURI);
     }).then((db) => {
-      this.db = db;
-  });
+        this.db = db;
+    });
     return this.connectionPromise;
 };
 
@@ -73,20 +73,20 @@ ExportAdapter.prototype.loadSchema = function(acceptor) {
 
     if (!this.schemaPromise) {
         this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
-          delete this.schemaPromise;
-          return Schema.load(coll);
-      });
+            delete this.schemaPromise;
+            return Schema.load(coll);
+        });
         return this.schemaPromise;
     }
 
     return this.schemaPromise.then((schema) => {
         if (acceptor(schema)) {
-          return schema;
-      }
+            return schema;
+        }
         this.schemaPromise = this.collection('_SCHEMA').then((coll) => {
-          delete this.schemaPromise;
-          return Schema.load(coll);
-      });
+            delete this.schemaPromise;
+            return Schema.load(coll);
+        });
         return this.schemaPromise;
     });
 };
@@ -99,10 +99,10 @@ ExportAdapter.prototype.redirectClassNameForKey = function(className, key) {
         var t = schema.getExpectedType(className, key);
         var match = t.match(/^relation<(.*)>$/);
         if (match) {
-          return match[1];
-      } else {
-          return className;
-      }
+            return match[1];
+        } else {
+            return className;
+        }
     });
 };
 
@@ -153,48 +153,48 @@ ExportAdapter.prototype.update = function(className, query, update, options) {
     return this.loadSchema(acceptor).then((s) => {
         schema = s;
         if (!isMaster) {
-          return schema.validatePermission(className, aclGroup, 'update');
-      }
+            return schema.validatePermission(className, aclGroup, 'update');
+        }
         return Promise.resolve();
     }).then(() => {
 
-      return this.handleRelationUpdates(className, query.objectId, update);
-  }).then(() => {
-      return this.collection(className);
-  }).then((coll) => {
-      var mongoWhere = transform.transformWhere(schema, className, query);
-      if (options.acl) {
-          var writePerms = [
+        return this.handleRelationUpdates(className, query.objectId, update);
+    }).then(() => {
+        return this.collection(className);
+    }).then((coll) => {
+        var mongoWhere = transform.transformWhere(schema, className, query);
+        if (options.acl) {
+            var writePerms = [
         {_wperm: {'$exists': false}}
-        ];
-          for (var entry of options.acl) {
-            writePerms.push({_wperm: {'$in': [entry]}});
+            ];
+            for (var entry of options.acl) {
+                writePerms.push({_wperm: {'$in': [entry]}});
+            }
+            mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
         }
-          mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
-      }
 
-      mongoUpdate = transform.transformUpdate(schema, className, update);
+        mongoUpdate = transform.transformUpdate(schema, className, update);
 
-      return coll.findAndModify(mongoWhere, {}, mongoUpdate, {});
-  }).then((result) => {
-      if (!result.value) {
-          return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+        return coll.findAndModify(mongoWhere, {}, mongoUpdate, {});
+    }).then((result) => {
+        if (!result.value) {
+            return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                                             'Object not found.'));
-      }
-      if (result.lastErrorObject.n != 1) {
-          return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
-                                            'Object not found.'));
-      }
-
-      var response = {};
-      var inc = mongoUpdate['$inc'];
-      if (inc) {
-          for (var key in inc) {
-            response[key] = (result.value[key] || 0) + inc[key];
         }
-      }
-      return response;
-  });
+        if (result.lastErrorObject.n != 1) {
+            return Promise.reject(new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+                                            'Object not found.'));
+        }
+
+        var response = {};
+        var inc = mongoUpdate['$inc'];
+        if (inc) {
+            for (var key in inc) {
+                response[key] = (result.value[key] || 0) + inc[key];
+            }
+        }
+        return response;
+    });
 };
 
 // Processes relation-updating operations from a REST-format update.
@@ -210,31 +210,31 @@ ExportAdapter.prototype.handleRelationUpdates = function(className,
 
     var process = (op, key) => {
         if (!op) {
-          return;
-      }
+            return;
+        }
         if (op.__op == 'AddRelation') {
-          for (var object of op.objects) {
-            pending.push(this.addRelation(key, className,
+            for (var object of op.objects) {
+                pending.push(this.addRelation(key, className,
                                       objectId,
                                       object.objectId));
+            }
+            deleteMe.push(key);
         }
-          deleteMe.push(key);
-      }
 
         if (op.__op == 'RemoveRelation') {
-          for (var object of op.objects) {
-            pending.push(this.removeRelation(key, className,
+            for (var object of op.objects) {
+                pending.push(this.removeRelation(key, className,
                                          objectId,
                                          object.objectId));
+            }
+            deleteMe.push(key);
         }
-          deleteMe.push(key);
-      }
 
         if (op.__op == 'Batch') {
-          for (x of op.ops) {
-            process(x, key);
+            for (x of op.ops) {
+                process(x, key);
+            }
         }
-      }
     };
 
     for (var key in update) {
@@ -291,36 +291,36 @@ ExportAdapter.prototype.destroy = function(className, query, options) {
     return this.loadSchema().then((s) => {
         schema = s;
         if (!isMaster) {
-          return schema.validatePermission(className, aclGroup, 'delete');
-      }
+            return schema.validatePermission(className, aclGroup, 'delete');
+        }
         return Promise.resolve();
     }).then(() => {
 
-      return this.collection(className);
-  }).then((coll) => {
-      var mongoWhere = transform.transformWhere(schema, className, query);
+        return this.collection(className);
+    }).then((coll) => {
+        var mongoWhere = transform.transformWhere(schema, className, query);
 
-      if (options.acl) {
-          var writePerms = [
+        if (options.acl) {
+            var writePerms = [
         {_wperm: {'$exists': false}}
-        ];
-          for (var entry of options.acl) {
-            writePerms.push({_wperm: {'$in': [entry]}});
+            ];
+            for (var entry of options.acl) {
+                writePerms.push({_wperm: {'$in': [entry]}});
+            }
+            mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
         }
-          mongoWhere = {'$and': [mongoWhere, {'$or': writePerms}]};
-      }
 
-      return coll.remove(mongoWhere);
-  }).then((resp) => {
-      if (resp.result.n === 0) {
-          return Promise.reject(
+        return coll.remove(mongoWhere);
+    }).then((resp) => {
+        if (resp.result.n === 0) {
+            return Promise.reject(
         new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                         'Object not found.'));
 
-      }
-  }, (error) => {
-      throw error;
-  });
+        }
+    }, (error) => {
+        throw error;
+    });
 };
 
 // Inserts an object into the database.
@@ -333,18 +333,18 @@ ExportAdapter.prototype.create = function(className, object, options) {
     return this.loadSchema().then((s) => {
         schema = s;
         if (!isMaster) {
-          return schema.validatePermission(className, aclGroup, 'create');
-      }
+            return schema.validatePermission(className, aclGroup, 'create');
+        }
         return Promise.resolve();
     }).then(() => {
 
-      return this.handleRelationUpdates(className, null, object);
-  }).then(() => {
-      return this.collection(className);
-  }).then((coll) => {
-      var mongoObject = transform.transformCreate(schema, className, object);
-      return coll.insert([mongoObject]);
-  });
+        return this.handleRelationUpdates(className, null, object);
+    }).then(() => {
+        return this.collection(className);
+    }).then((coll) => {
+        var mongoObject = transform.transformCreate(schema, className, object);
+        return coll.insert([mongoObject]);
+    });
 };
 
 // Runs a mongo query on the database.
@@ -367,15 +367,15 @@ ExportAdapter.prototype.deleteEverything = function() {
     return this.connect().then(() => {
         return this.db.collections();
     }).then((colls) => {
-      var promises = [];
-      for (var coll of colls) {
-          if (!coll.namespace.match(/\.system\./) &&
+        var promises = [];
+        for (var coll of colls) {
+            if (!coll.namespace.match(/\.system\./) &&
           coll.collectionName.indexOf(this.collectionPrefix) === 0) {
-            promises.push(coll.drop());
+                promises.push(coll.drop());
+            }
         }
-      }
-      return Promise.all(promises);
-  });
+        return Promise.all(promises);
+    });
 };
 
 // Finds the keys in a query. Returns a Set. REST format only
@@ -384,10 +384,10 @@ function keysForQuery(query) {
     if (sublist) {
         var answer = new Set();
         for (var subquery of sublist) {
-          for (var key of keysForQuery(subquery)) {
-            answer.add(key);
+            for (var key of keysForQuery(subquery)) {
+                answer.add(key);
+            }
         }
-      }
         return answer;
     }
 
@@ -401,8 +401,8 @@ ExportAdapter.prototype.relatedIds = function(className, key, owningId) {
     return this.collection(joinTable).then((coll) => {
         return coll.find({owningId: owningId}).toArray();
     }).then((results) => {
-      return results.map(r => r.relatedId);
-  });
+        return results.map(r => r.relatedId);
+    });
 };
 
 // Returns a promise for a list of owning ids given some related ids.
@@ -412,8 +412,8 @@ ExportAdapter.prototype.owningIds = function(className, key, relatedIds) {
     return this.collection(joinTable).then((coll) => {
         return coll.find({relatedId: {'$in': relatedIds}}).toArray();
     }).then((results) => {
-      return results.map(r => r.owningId);
-  });
+        return results.map(r => r.owningId);
+    });
 };
 
 // Modifies query so that it no longer has $in on relation fields, or
@@ -425,23 +425,23 @@ ExportAdapter.prototype.reduceInRelation = function(className, query, schema) {
     for (var key in query) {
         if (query[key] &&
         (query[key]['$in'] || query[key].__type == 'Pointer')) {
-          var t = schema.getExpectedType(className, key);
-          var match = t ? t.match(/^relation<(.*)>$/) : false;
-          if (!match) {
-            continue;
+            var t = schema.getExpectedType(className, key);
+            var match = t ? t.match(/^relation<(.*)>$/) : false;
+            if (!match) {
+                continue;
+            }
+            var relatedClassName = match[1];
+            var relatedIds;
+            if (query[key]['$in']) {
+                relatedIds = query[key]['$in'].map(r => r.objectId);
+            } else {
+                relatedIds = [query[key].objectId];
+            }
+            return this.owningIds(className, key, relatedIds).then((ids) => {
+                delete query[key];
+                query.objectId = {'$in': ids};
+            });
         }
-          var relatedClassName = match[1];
-          var relatedIds;
-          if (query[key]['$in']) {
-            relatedIds = query[key]['$in'].map(r => r.objectId);
-        } else {
-            relatedIds = [query[key].objectId];
-        }
-          return this.owningIds(className, key, relatedIds).then((ids) => {
-            delete query[key];
-            query.objectId = {'$in': ids};
-        });
-      }
     }
     return Promise.resolve();
 };
@@ -526,52 +526,52 @@ ExportAdapter.prototype.find = function(className, query, options) {
     return this.loadSchema(acceptor).then((s) => {
         schema = s;
         if (options.sort) {
-          mongoOptions.sort = {};
-          for (var key in options.sort) {
-            var mongoKey = transform.transformKey(schema, className, key);
-            mongoOptions.sort[mongoKey] = options.sort[key];
+            mongoOptions.sort = {};
+            for (var key in options.sort) {
+                var mongoKey = transform.transformKey(schema, className, key);
+                mongoOptions.sort[mongoKey] = options.sort[key];
+            }
         }
-      }
 
         if (!isMaster) {
-          var op = 'find';
-          var k = Object.keys(query);
-          if (k.length == 1 && typeof query.objectId == 'string') {
-            op = 'get';
+            var op = 'find';
+            var k = Object.keys(query);
+            if (k.length == 1 && typeof query.objectId == 'string') {
+                op = 'get';
+            }
+            return schema.validatePermission(className, aclGroup, op);
         }
-          return schema.validatePermission(className, aclGroup, op);
-      }
         return Promise.resolve();
     }).then(() => {
-      return this.reduceRelationKeys(className, query);
-  }).then(() => {
-      return this.reduceInRelation(className, query, schema);
-  }).then(() => {
-      return this.collection(className);
-  }).then((coll) => {
-      var mongoWhere = transform.transformWhere(schema, className, query);
-      if (!isMaster) {
-          var orParts = [
+        return this.reduceRelationKeys(className, query);
+    }).then(() => {
+        return this.reduceInRelation(className, query, schema);
+    }).then(() => {
+        return this.collection(className);
+    }).then((coll) => {
+        var mongoWhere = transform.transformWhere(schema, className, query);
+        if (!isMaster) {
+            var orParts = [
         {'_rperm' : { '$exists': false }},
         {'_rperm' : { '$in' : ['*']}}
-        ];
-          for (var acl of aclGroup) {
-            orParts.push({'_rperm' : { '$in' : [acl]}});
+            ];
+            for (var acl of aclGroup) {
+                orParts.push({'_rperm' : { '$in' : [acl]}});
+            }
+            mongoWhere = {'$and': [mongoWhere, {'$or': orParts}]};
         }
-          mongoWhere = {'$and': [mongoWhere, {'$or': orParts}]};
-      }
-      if (options.count) {
-          return coll.count(mongoWhere, mongoOptions);
-      } else {
-          return this.smartFind(coll, mongoWhere, mongoOptions)
+        if (options.count) {
+            return coll.count(mongoWhere, mongoOptions);
+        } else {
+            return this.smartFind(coll, mongoWhere, mongoOptions)
         .then((mongoResults) => {
             return mongoResults.map((r) => {
                 return this.untransformObject(
               schema, isMaster, aclGroup, className, r);
             });
         });
-      }
-  });
+        }
+    });
 };
 
 module.exports = ExportAdapter;

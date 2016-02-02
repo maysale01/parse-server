@@ -54,23 +54,23 @@ Parse.Cloud.afterSave('SaveTriggerUser', function(req) {
 Parse.Cloud.define('foo', function(req, res) {
     res.success({
         object: {
-          __type: 'Object',
-          className: 'Foo',
-          objectId: '123',
-          x: 2,
-          relation: {
+            __type: 'Object',
+            className: 'Foo',
+            objectId: '123',
+            x: 2,
+            relation: {
+                __type: 'Object',
+                className: 'Bar',
+                objectId: '234',
+                x: 3
+            }
+        },
+        array: [{
             __type: 'Object',
             className: 'Bar',
-            objectId: '234',
-            x: 3
-        }
-      },
-        array: [{
-          __type: 'Object',
-          className: 'Bar',
-          objectId: '345',
-          x: 2
-      }],
+            objectId: '345',
+            x: 2
+        }],
         a: 2
     });
 });

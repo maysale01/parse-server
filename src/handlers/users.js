@@ -62,14 +62,14 @@ function handleLogIn(req) {
         var sessionData = {
             sessionToken: token,
             user: {
-              __type: 'Pointer',
-              className: '_User',
-              objectId: user.objectId
-          },
+                __type: 'Pointer',
+                className: '_User',
+                objectId: user.objectId
+            },
             createdWith: {
-              'action': 'login',
-              'authProvider': 'password'
-          },
+                'action': 'login',
+                'authProvider': 'password'
+            },
             restricted: false,
             expiresAt: Parse._encode(expiresAt).iso
         };

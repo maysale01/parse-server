@@ -6,12 +6,12 @@ var bcrypt = require('bcrypt-nodejs');
 function hash(password) {
     return new Promise(function(fulfill, reject) {
         bcrypt.hash(password, null, null, function(err, hashedPassword) {
-          if (err) {
-            reject(err);
-        } else {
-            fulfill(hashedPassword);
-        }
-      });
+            if (err) {
+                reject(err);
+            } else {
+                fulfill(hashedPassword);
+            }
+        });
     });
 }
 
@@ -20,12 +20,12 @@ function hash(password) {
 function compare(password, hashedPassword) {
     return new Promise(function(fulfill, reject) {
         bcrypt.compare(password, hashedPassword, function(err, success) {
-          if (err) {
-            reject(err);
-        } else {
-            fulfill(success);
-        }
-      });
+            if (err) {
+                reject(err);
+            } else {
+                fulfill(success);
+            }
+        });
     });
 }
 

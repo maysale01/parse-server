@@ -55,9 +55,9 @@ function RestWrite(config, auth, className, query, data, originalData) {
     // Add default fields
         this.data.updatedAt = this.updatedAt;
         if (!this.query) {
-          this.data.createdAt = this.updatedAt;
-          this.data.objectId = newObjectId();
-      }
+            this.data.createdAt = this.updatedAt;
+            this.data.objectId = newObjectId();
+        }
     }
 }
 
@@ -69,24 +69,24 @@ RestWrite.prototype.execute = function() {
     return Promise.resolve().then(() => {
         return this.validateSchema();
     }).then(() => {
-      return this.handleInstallation();
-  }).then(() => {
-      return this.handleSession();
-  }).then(() => {
-      return this.runBeforeTrigger();
-  }).then(() => {
-      return this.validateAuthData();
-  }).then(() => {
-      return this.transformUser();
-  }).then(() => {
-      return this.runDatabaseOperation();
-  }).then(() => {
-      return this.handleFollowup();
-  }).then(() => {
-      return this.runAfterTrigger();
-  }).then(() => {
-      return this.response;
-  });
+        return this.handleInstallation();
+    }).then(() => {
+        return this.handleSession();
+    }).then(() => {
+        return this.runBeforeTrigger();
+    }).then(() => {
+        return this.validateAuthData();
+    }).then(() => {
+        return this.transformUser();
+    }).then(() => {
+        return this.runDatabaseOperation();
+    }).then(() => {
+        return this.handleFollowup();
+    }).then(() => {
+        return this.runAfterTrigger();
+    }).then(() => {
+        return this.response;
+    });
 };
 
 // Validates this operation against the schema.
@@ -115,14 +115,14 @@ RestWrite.prototype.runBeforeTrigger = function() {
         return triggers.maybeRunTrigger(
       'beforeSave', this.auth, inflatedObject, originalObject);
     }).then((response) => {
-      if (response && response.object) {
-          this.data = response.object;
+        if (response && response.object) {
+            this.data = response.object;
       // We should delete the objectId for an update write
-          if (this.query && this.query.objectId) {
-            delete this.data.objectId;
+            if (this.query && this.query.objectId) {
+                delete this.data.objectId;
+            }
         }
-      }
-  });
+    });
 };
 
 // Transforms auth data for a user object.
@@ -135,13 +135,13 @@ RestWrite.prototype.validateAuthData = function() {
 
     if (!this.query && !this.data.authData) {
         if (typeof this.data.username !== 'string') {
-          throw new Parse.Error(Parse.Error.USERNAME_MISSING,
+            throw new Parse.Error(Parse.Error.USERNAME_MISSING,
                             'bad or missing username');
-      }
+        }
         if (typeof this.data.password !== 'string') {
-          throw new Parse.Error(Parse.Error.PASSWORD_MISSING,
+            throw new Parse.Error(Parse.Error.PASSWORD_MISSING,
                             'password is required');
-      }
+        }
     }
 
     if (!this.data.authData) {
@@ -156,11 +156,11 @@ RestWrite.prototype.validateAuthData = function() {
         return this.handleAnonymousAuthData();
     } else if (facebookData === null ||
     (facebookData && facebookData.id && facebookData.access_token)) {
-      return this.handleFacebookAuthData();
-  } else {
-      throw new Parse.Error(Parse.Error.UNSUPPORTED_SERVICE,
+        return this.handleFacebookAuthData();
+    } else {
+        throw new Parse.Error(Parse.Error.UNSUPPORTED_SERVICE,
                           'This authentication method is unsupported.');
-  }
+    }
 };
 
 RestWrite.prototype.handleAnonymousAuthData = function() {
@@ -179,20 +179,20 @@ RestWrite.prototype.handleAnonymousAuthData = function() {
       if (results.length > 0) {
           if (!this.query) {
         // We're signing up, but this user already exists. Short-circuit
-            delete results[0].password;
-            this.response = {
-              response: results[0],
-              location: this.location()
-          };
-            return;
-        }
+              delete results[0].password;
+              this.response = {
+                  response: results[0],
+                  location: this.location()
+              };
+              return;
+          }
 
       // If this is a PUT for the same user, allow the linking
           if (results[0].objectId === this.query.objectId) {
         // Delete the rest format key before saving
-            delete this.data.authData;
-            return;
-        }
+              delete this.data.authData;
+              return;
+          }
 
       // We're trying to create a duplicate account.  Forbid it
           throw new Parse.Error(Parse.Error.ACCOUNT_ALREADY_LINKED,
@@ -232,20 +232,20 @@ RestWrite.prototype.handleFacebookAuthData = function() {
         if (results.length > 0) {
             if (!this.query) {
           // We're signing up, but this user already exists. Short-circuit
-              delete results[0].password;
-              this.response = {
-                response: results[0],
-                location: this.location()
-            };
-              return;
-          }
+                delete results[0].password;
+                this.response = {
+                    response: results[0],
+                    location: this.location()
+                };
+                return;
+            }
 
         // If this is a PUT for the same user, allow the linking
             if (results[0].objectId === this.query.objectId) {
           // Delete the rest format key before saving
-              delete this.data.authData;
-              return;
-          }
+                delete this.data.authData;
+                return;
+            }
         // We're trying to create a duplicate FB auth. Forbid it
             throw new Parse.Error(Parse.Error.ACCOUNT_ALREADY_LINKED,
                               'this auth is already used');
@@ -273,48 +273,48 @@ RestWrite.prototype.transformUser = function() {
         this.storage['token'] = token;
         promise = promise.then(() => {
       // TODO: Proper createdWith options, pass installationId
-          var sessionData = {
-            sessionToken: token,
-            user: {
-              __type: 'Pointer',
-              className: '_User',
-              objectId: this.objectId()
-          },
-            createdWith: {
-              'action': 'login',
-              'authProvider': 'password'
-          },
-            restricted: false
-        };
-          var create = new RestWrite(this.config, Auth.master(this.config),
+            var sessionData = {
+                sessionToken: token,
+                user: {
+                    __type: 'Pointer',
+                    className: '_User',
+                    objectId: this.objectId()
+                },
+                createdWith: {
+                    'action': 'login',
+                    'authProvider': 'password'
+                },
+                restricted: false
+            };
+            var create = new RestWrite(this.config, Auth.master(this.config),
                                  '_Session', null, sessionData);
-          return create.execute();
-      });
+            return create.execute();
+        });
     }
 
     return promise.then(() => {
     // Transform the password
         if (!this.data.password) {
-          return;
-      }
+            return;
+        }
         if (this.query) {
-          this.storage['clearSessions'] = true;
-      }
+            this.storage['clearSessions'] = true;
+        }
         return passwordCrypto.hash(this.data.password).then((hashedPassword) => {
-          this.data._hashed_password = hashedPassword;
-          delete this.data.password;
-      });
+            this.data._hashed_password = hashedPassword;
+            delete this.data.password;
+        });
 
     }).then(() => {
     // Check for username uniqueness
-      if (!this.data.username) {
-          if (!this.query) {
+        if (!this.data.username) {
+            if (!this.query) {
         // TODO: what's correct behavior here
-            this.data.username = '';
+                this.data.username = '';
+            }
+            return;
         }
-          return;
-      }
-      return this.config.database.find(
+        return this.config.database.find(
       this.className, {
           username: this.data.username,
           objectId: {'$ne': this.objectId()}
@@ -325,17 +325,17 @@ RestWrite.prototype.transformUser = function() {
           }
           return Promise.resolve();
       });
-  }).then(() => {
-      if (!this.data.email) {
-          return;
-      }
+    }).then(() => {
+        if (!this.data.email) {
+            return;
+        }
     // Validate basic email address format
-      if (!this.data.email.match(/^.+@.+$/)) {
-          throw new Parse.Error(Parse.Error.INVALID_EMAIL_ADDRESS,
+        if (!this.data.email.match(/^.+@.+$/)) {
+            throw new Parse.Error(Parse.Error.INVALID_EMAIL_ADDRESS,
                             'Email address format is invalid.');
-      }
+        }
     // Check for email uniqueness
-      return this.config.database.find(
+        return this.config.database.find(
       this.className, {
           email: this.data.email,
           objectId: {'$ne': this.objectId()}
@@ -347,19 +347,19 @@ RestWrite.prototype.transformUser = function() {
           }
           return Promise.resolve();
       });
-  });
+    });
 };
 
 // Handles any followup logic
 RestWrite.prototype.handleFollowup = function() {
     if (this.storage && this.storage['clearSessions']) {
         var sessionQuery = {
-          user: {
-            __type: 'Pointer',
-            className: '_User',
-            objectId: this.objectId()
-        }
-      };
+            user: {
+                __type: 'Pointer',
+                className: '_User',
+                objectId: this.objectId()
+            }
+        };
         delete this.storage['clearSessions'];
         return this.config.database.destroy('_Session', sessionQuery)
     .then(this.handleFollowup);
@@ -405,38 +405,38 @@ RestWrite.prototype.handleSession = function() {
     if (!this.query && !this.auth.isMaster) {
         var token = 'r:' + rack();
         var sessionData = {
-          sessionToken: token,
-          user: {
-            __type: 'Pointer',
-            className: '_User',
-            objectId: this.auth.user.id
-        },
-          createdWith: {
-            'action': 'create'
-        },
-          restricted: true,
-          expiresAt: 0
-      };
+            sessionToken: token,
+            user: {
+                __type: 'Pointer',
+                className: '_User',
+                objectId: this.auth.user.id
+            },
+            createdWith: {
+                'action': 'create'
+            },
+            restricted: true,
+            expiresAt: 0
+        };
         for (var key in this.data) {
-          if (key == 'objectId') {
-            continue;
+            if (key == 'objectId') {
+                continue;
+            }
+            sessionData[key] = this.data[key];
         }
-          sessionData[key] = this.data[key];
-      }
         var create = new RestWrite(this.config, Auth.master(this.config),
                                '_Session', null, sessionData);
         return create.execute().then((results) => {
-          if (!results.response) {
-            throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR,
+            if (!results.response) {
+                throw new Parse.Error(Parse.Error.INTERNAL_SERVER_ERROR,
                               'Error creating session.');
-        }
-          sessionData['objectId'] = results.response['objectId'];
-          this.response = {
-            status: 201,
-            location: results.location,
-            response: sessionData
-        };
-      });
+            }
+            sessionData['objectId'] = results.response['objectId'];
+            this.response = {
+                status: 201,
+                location: results.location,
+                response: sessionData
+            };
+        });
     }
 };
 
@@ -484,36 +484,36 @@ RestWrite.prototype.handleInstallation = function() {
 
     if (this.query && this.query.objectId) {
         promise = promise.then(() => {
-          return this.config.database.find('_Installation', {
-            objectId: this.query.objectId
-        }, {}).then((results) => {
-          if (!results.length) {
-              throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
+            return this.config.database.find('_Installation', {
+                objectId: this.query.objectId
+            }, {}).then((results) => {
+                if (!results.length) {
+                    throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
                                 'Object not found for update.');
-          }
-          var existing = results[0];
-          if (this.data.installationId && existing.installationId &&
+                }
+                var existing = results[0];
+                if (this.data.installationId && existing.installationId &&
           this.data.installationId !== existing.installationId) {
-              throw new Parse.Error(136,
+                    throw new Parse.Error(136,
                                 'installationId may not be changed in this ' +
                                 'operation');
-          }
-          if (this.data.deviceToken && existing.deviceToken &&
+                }
+                if (this.data.deviceToken && existing.deviceToken &&
           this.data.deviceToken !== existing.deviceToken &&
           !this.data.installationId && !existing.installationId) {
-              throw new Parse.Error(136,
+                    throw new Parse.Error(136,
                                 'deviceToken may not be changed in this ' +
                                 'operation');
-          }
-          if (this.data.deviceType && this.data.deviceType &&
+                }
+                if (this.data.deviceType && this.data.deviceType &&
           this.data.deviceType !== existing.deviceType) {
-              throw new Parse.Error(136,
+                    throw new Parse.Error(136,
                                 'deviceType may not be changed in this ' +
                                 'operation');
-          }
-          return Promise.resolve();
-      });
-      });
+                }
+                return Promise.resolve();
+            });
+        });
     }
 
   // Check if we already have installations for the installationId/deviceToken
@@ -521,98 +521,98 @@ RestWrite.prototype.handleInstallation = function() {
     var deviceTokenMatches = [];
     promise = promise.then(() => {
         if (this.data.installationId) {
-          return this.config.database.find('_Installation', {
-            'installationId': this.data.installationId
-        });
-      }
+            return this.config.database.find('_Installation', {
+                'installationId': this.data.installationId
+            });
+        }
         return Promise.resolve([]);
     }).then((results) => {
-      if (results && results.length) {
+        if (results && results.length) {
       // We only take the first match by installationId
-          installationMatch = results[0];
-      }
-      if (this.data.deviceToken) {
-          return this.config.database.find(
+            installationMatch = results[0];
+        }
+        if (this.data.deviceToken) {
+            return this.config.database.find(
         '_Installation',
         {'deviceToken': this.data.deviceToken});
-      }
-      return Promise.resolve([]);
-  }).then((results) => {
-      if (results) {
-          deviceTokenMatches = results;
-      }
-      if (!installationMatch) {
-          if (!deviceTokenMatches.length) {
-            return;
-        } else if (deviceTokenMatches.length == 1 &&
+        }
+        return Promise.resolve([]);
+    }).then((results) => {
+        if (results) {
+            deviceTokenMatches = results;
+        }
+        if (!installationMatch) {
+            if (!deviceTokenMatches.length) {
+                return;
+            } else if (deviceTokenMatches.length == 1 &&
         (!deviceTokenMatches[0]['installationId'] || !this.data.installationId)
       ) {
         // Single match on device token but none on installationId, and either
         // the passed object or the match is missing an installationId, so we
         // can just return the match.
-          return deviceTokenMatches[0]['objectId'];
-      } else if (!this.data.installationId) {
-          throw new Parse.Error(132,
+                return deviceTokenMatches[0]['objectId'];
+            } else if (!this.data.installationId) {
+                throw new Parse.Error(132,
                               'Must specify installationId when deviceToken ' +
                               'matches multiple Installation objects');
-      } else {
+            } else {
         // Multiple device token matches and we specified an installation ID,
         // or a single match where both the passed and matching objects have
         // an installation ID. Try cleaning out old installations that match
         // the deviceToken, and return nil to signal that a new object should
         // be created.
-          var delQuery = {
-              'deviceToken': this.data.deviceToken,
-              'installationId': {
-                '$ne': this.data.installationId
+                var delQuery = {
+                    'deviceToken': this.data.deviceToken,
+                    'installationId': {
+                        '$ne': this.data.installationId
+                    }
+                };
+                if (this.data.appIdentifier) {
+                    delQuery['appIdentifier'] = this.data.appIdentifier;
+                }
+                this.config.database.destroy('_Installation', delQuery);
+                return;
             }
-          };
-          if (this.data.appIdentifier) {
-              delQuery['appIdentifier'] = this.data.appIdentifier;
-          }
-          this.config.database.destroy('_Installation', delQuery);
-          return;
-      }
-      } else {
-          if (deviceTokenMatches.length == 1 &&
+        } else {
+            if (deviceTokenMatches.length == 1 &&
         !deviceTokenMatches[0]['installationId']) {
         // Exactly one device token match and it doesn't have an installation
         // ID. This is the one case where we want to merge with the existing
         // object.
-            var delQuery = {objectId: installationMatch.objectId};
-            return this.config.database.destroy('_Installation', delQuery)
+                var delQuery = {objectId: installationMatch.objectId};
+                return this.config.database.destroy('_Installation', delQuery)
           .then(() => {
               return deviceTokenMatches[0]['objectId'];
           });
-        } else {
-            if (this.data.deviceToken &&
+            } else {
+                if (this.data.deviceToken &&
           installationMatch.deviceToken != this.data.deviceToken) {
           // We're setting the device token on an existing installation, so
           // we should try cleaning out old installations that match this
           // device token.
-              var delQuery = {
-                'deviceToken': this.data.deviceToken,
-                'installationId': {
-                  '$ne': this.data.installationId
-              }
-            };
-              if (this.data.appIdentifier) {
-                delQuery['appIdentifier'] = this.data.appIdentifier;
-            }
-              this.config.database.destroy('_Installation', delQuery);
-          }
+                    var delQuery = {
+                        'deviceToken': this.data.deviceToken,
+                        'installationId': {
+                            '$ne': this.data.installationId
+                        }
+                    };
+                    if (this.data.appIdentifier) {
+                        delQuery['appIdentifier'] = this.data.appIdentifier;
+                    }
+                    this.config.database.destroy('_Installation', delQuery);
+                }
         // In non-merge scenarios, just return the installation match id
-            return installationMatch.objectId;
+                return installationMatch.objectId;
+            }
         }
-      }
-  }).then((objId) => {
-      if (objId) {
-          this.query = {objectId: objId};
-          delete this.data.objectId;
-          delete this.data.createdAt;
-      }
+    }).then((objId) => {
+        if (objId) {
+            this.query = {objectId: objId};
+            delete this.data.objectId;
+            delete this.data.createdAt;
+        }
     // TODO: Validate ops (add/remove on channels, $inc on badge, etc.)
-  });
+    });
     return promise;
 };
 
@@ -638,8 +638,8 @@ RestWrite.prototype.runDatabaseOperation = function() {
     if (!this.auth.isMaster) {
         options.acl = ['*'];
         if (this.auth.user) {
-          options.acl.push(this.auth.user.id);
-      }
+            options.acl.push(this.auth.user.id);
+        }
     }
 
     if (this.query) {

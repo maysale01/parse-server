@@ -50,15 +50,15 @@ var getRequestObject = function(triggerType, auth, parseObject, originalParseObj
 var getResponseObject = function(request, resolve, reject) {
     return {
         success: function() {
-          var response = {};
-          if (request.triggerName === Types.beforeSave) {
-            response['object'] = request.object.toJSON();
-        }
-          return resolve(response);
-      },
+            var response = {};
+            if (request.triggerName === Types.beforeSave) {
+                response['object'] = request.object.toJSON();
+            }
+            return resolve(response);
+        },
         error: function(error) {
-          throw new Parse.Error(Parse.Error.SCRIPT_FAILED, error);
-      }
+            throw new Parse.Error(Parse.Error.SCRIPT_FAILED, error);
+        }
     };
 };
 
