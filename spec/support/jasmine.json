@@ -4,7 +4,7 @@
     "**/*[Ss]pec.{js,coffee}"
   ],
   "helpers": [
-    "helpers/*.js"
+    "helpers/**/*.js"
   ]
 }
 
