@@ -157,7 +157,7 @@ function normalize(obj) {
     return '[' + obj.map(normalize).join(', ') + ']';
   }
   var answer = '{';
-  for (key of Object.keys(obj).sort()) {
+  for (var key of Object.keys(obj).sort()) {
     answer += key + ': ';
     answer += normalize(obj[key]);
     answer += ', ';
@@ -196,7 +196,7 @@ function mockFacebook() {
 
 function clearData() {
   var promises = [];
-  for (conn in DatabaseAdapter.dbConnections) {
+  for (var conn in DatabaseAdapter.dbConnections) {
     promises.push(DatabaseAdapter.dbConnections[conn].deleteEverything());
   }
   return Promise.all(promises);
