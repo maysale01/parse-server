@@ -5,5 +5,5 @@ module.exports = {
   middlewares: require('./middlewares'),
   adapters: require('./adapters'),
   classes: require('./classes'),
-  ParseServer: require('./classes').ParseServer
+  ParseServer: require('./server')
 };

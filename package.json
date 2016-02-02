@@ -22,12 +22,10 @@
     "request": "^2.65.0"
   },
   "devDependencies": {
-    "jasmine": "^2.3.2",
-    "jasmine-node": "^1.14.5"
+    "jasmine": "^2.3.2"
   },
   "scripts": {
-    "test": "TESTING=1 ./node_modules/.bin/jasmine-node spec",
-    "prepublish": "npm run test"
+    "test": "TESTING=1 ./node_modules/.bin/jasmine"
   },
   "engines": {
     "node": ">=4.1"
