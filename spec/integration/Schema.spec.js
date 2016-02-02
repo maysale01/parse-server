@@ -1,8 +1,8 @@
 // These tests check that the Schema operates correctly.
 var path = require('path');
 
-var Config              = require(path.resolve(projectRoot, 'src/classes/Config'));
-var Schema              = require(path.resolve(projectRoot, 'src/classes/Schema'));
+var Config              = require(path.resolve('src/classes/Config'));
+var Schema              = require(path.resolve('src/classes/Schema'));
 
 var config = new Config('test');
 

@@ -2,10 +2,10 @@
 
 var path = require('path');
 
-var cache               = require(path.resolve(projectRoot, 'src/utils/cache'));
-var rest                = require(path.resolve(projectRoot, 'src/utils/rest'));
-var Auth                = require(path.resolve(projectRoot, 'src/classes/Auth'));
-var Config              = require(path.resolve(projectRoot, 'src/classes/Config'));
+var cache               = require(path.resolve('src/utils/cache'));
+var rest                = require(path.resolve('src/utils/rest'));
+var Auth                = require(path.resolve('src/classes/Auth'));
+var Config              = require(path.resolve('src/classes/Config'));
 
 var config = new Config('test');
 var nobody = Auth.nobody(config);

@@ -7,7 +7,7 @@
 
 var request             = require('request');
 var path = require('path');
-var passwordCrypto      = require(path.resolve(projectRoot, 'src/utils/password'));
+var passwordCrypto      = require(path.resolve('src/utils/password'));
 
 describe('Parse.User testing', () => {
   it("user sign up class method", (done) => {

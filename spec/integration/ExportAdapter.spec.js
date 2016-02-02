@@ -1,5 +1,5 @@
 var path = require('path');
-var ExportAdapter = require(path.resolve(projectRoot, 'src/adapters/ExportAdapter'));
+var ExportAdapter = require(path.resolve('src/adapters/ExportAdapter'));
 
 describe('ExportAdapter', () => {
   it('can be constructed', (done) => {

@@ -1,16 +1,15 @@
 // Sets up a Parse API server for testing.
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 2500;
 var path = require('path');
-var projectRoot = path.resolve(__dirname, '../../');
 
 var express = require('express');
 
-var cache = require(path.resolve(projectRoot, 'src/utils/cache'));
-var facebook = require(path.resolve(projectRoot, 'src/utils/facebook'));
-var DatabaseAdapter = require(path.resolve(projectRoot, 'src/classes/DatabaseAdapter'));
-var ExportAdapter = require(path.resolve(projectRoot, 'src/adapters/ExportAdapter'));
-var ParseServer = require(path.resolve(projectRoot, 'src/index')).ParseServer;
+var cache = require(path.resolve('src/utils/cache'));
+var facebook = require(path.resolve('src/utils/facebook'));
+var DatabaseAdapter = require(path.resolve('src/classes/DatabaseAdapter'));
+var ExportAdapter = require(path.resolve('src/adapters/ExportAdapter'));
+var ParseServer = require(path.resolve('src/index')).ParseServer;
 
 var databaseURI = process.env.DATABASE_URI;
 var cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
@@ -219,4 +218,3 @@ global.expectError = expectError;
 global.arrayContains = arrayContains;
 global.jequal = jequal;
 global.range = range;
-global.projectRoot = projectRoot;   

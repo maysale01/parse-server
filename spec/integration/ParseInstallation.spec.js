@@ -3,11 +3,11 @@
 
 var path = require('path');
 
-var cache               = require(path.resolve(projectRoot, 'src/utils/cache'));
-var rest                = require(path.resolve(projectRoot, 'src/utils/rest'));
-var Auth                = require(path.resolve(projectRoot, 'src/classes/Auth'));
-var Config              = require(path.resolve(projectRoot, 'src/classes/Config'));
-var DatabaseAdapter     = require(path.resolve(projectRoot, 'src/classes/DatabaseAdapter'));
+var cache               = require(path.resolve('src/utils/cache'));
+var rest                = require(path.resolve('src/utils/rest'));
+var Auth                = require(path.resolve('src/classes/Auth'));
+var Config              = require(path.resolve('src/classes/Config'));
+var DatabaseAdapter     = require(path.resolve('src/classes/DatabaseAdapter'));
 var Parse               = require('parse/node').Parse;
 
 var config = new Config('test');
