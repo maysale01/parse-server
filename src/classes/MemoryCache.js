@@ -1,5 +1,9 @@
-export default class MemoryCache {
+import { default as CacheInterface } from '../interfaces/Cache';
+
+export default class MemoryCache extends CacheInterface {
     constructor(args = {}) {
+        super();
+
         this._apps = Object.assign({}, args.apps);
         this._stats = Object.assign({}, args.stats);
         this._users = Object.assign({}, args.users);

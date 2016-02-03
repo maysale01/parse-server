@@ -4,7 +4,6 @@ import multer           from 'multer';
 import request          from 'request';
 import bodyParser       from 'body-parser';
 import { Parse }        from 'parse/node';
-import morgan           from 'morgan';
 
 import { addParseCloud } from './utils';
 import * as middlewares from './middlewares';
