@@ -28,7 +28,7 @@ function handleGet(req) {
     return rest.find(req.config, req.auth, '_Role', {objectId: req.params.objectId})
     .then((response) => {
         if (!response.results || response.results.length == 0) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Object not found.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_Role]: Object not found.');
         } else {
             return {response: response.results[0]};
         }

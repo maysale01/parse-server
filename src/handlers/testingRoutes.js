@@ -1,9 +1,11 @@
 // testing-routes.js
 import express from 'express';
 import * as middlewares from '../middlewares';
-import { rack } from 'hat';
+import hat from 'hat';
+import { ParseApp } from '../classes';
 
 const router = express.Router();
+const rack = hat.rack();
 
 // creates a unique app in the cache, with a collection prefix
 export function createApp(req, res) {
@@ -11,10 +13,16 @@ export function createApp(req, res) {
     const cache = Server.getCacheProvider().cache;
     const appId = rack();
 
-    cache._apps[appId] = {
+    let args = {
+        'applicationId': appId,
         'collectionPrefix': `${appId}_`,
         'masterKey': 'master'
     };
+
+    let newParseApp = new ParseApp(args);
+    newParseApp.database = Server.getDatabaseProvider().getDatabaseConnection(newParseApp.applicationId, newParseApp.collectionPrefix);
+    Server.registerApp(newParseApp.applicationId, newParseApp);
+
     const keys = {
         'application_id': appId,
         'client_key': 'unused',
@@ -32,7 +40,7 @@ export function clearApp(req, res) {
     if (!req.auth.isMaster) {
         return res.status(401).send({'error': 'unauthorized'});
     }
-    console.log('testingRoutes', req.database);
+    
     req.config.database.deleteEverything().then(() => {
         res.status(200).send({});
     });
@@ -45,8 +53,8 @@ export function dropApp(req, res) {
     if (!req.auth.isMaster) {
         return res.status(401).send({'error': 'unauthorized'});
     }
-    console.log(req);
-    req.database.deleteEverything().then(() => {
+
+    req.config.database.deleteEverything().then(() => {
         delete cache.apps[req.config.applicationId];
         res.status(200).send({});
     });

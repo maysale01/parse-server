@@ -2,7 +2,7 @@
 
 import { Schema } from '../../src/classes';
 
-let config = Object.assign({}, Config);
+let config = Config;
 
 describe('Schema', () => {
   it('can validate one object', (done) => {

@@ -4,6 +4,7 @@ import multer           from 'multer';
 import request          from 'request';
 import bodyParser       from 'body-parser';
 import { Parse }        from 'parse/node';
+import morgan           from 'morgan';
 
 import { addParseCloud } from './utils';
 import * as middlewares from './middlewares';
@@ -24,7 +25,7 @@ export function initParseServer(args = {}) {
 
     // TODO: Make this handle multiple apps passed in via args.apps
     let newParseApp = new ParseApp(args);
-    newParseApp.database = server.getDatabaseProvider().getDatabaseConnection(newParseApp.appId, newParseApp.collectionPrefix);
+    newParseApp.database = server.getDatabaseProvider().getDatabaseConnection(newParseApp.applicationId, newParseApp.collectionPrefix);
     
     // To maintain compatibility. TODO: Remove in v2.1
     if (process.env.FACEBOOK_APP_ID) {
@@ -35,13 +36,12 @@ export function initParseServer(args = {}) {
 
     // TODO: Move this to the ParseApp class and scope the global for each application
     // Initialize the node client SDK automatically
-    // 
     Parse.initialize(args.appId || args.applicationId, args.javascriptKey || '', args.masterKey);
 
     const app = express();
     const router = new PromiseRouter();
 
-    // Allow access to the server and apps
+    // Allow handlers to access the server and apps
     app.use(function(req, res, next) {
         req.Parse = {
             Server: server
@@ -49,6 +49,13 @@ export function initParseServer(args = {}) {
 
         next();
     });
+
+    // Expose it for manipulation
+    app.set('Parse', {
+        Server: server
+    });
+
+    // app.use(morgan('combined'));
 
     // File handling needs to be before default middlewares are applied
     app.use('/', handlers.files);
@@ -79,10 +86,6 @@ export function initParseServer(args = {}) {
     router.mountOnto(app);
 
     app.use(middlewares.handleParseErrors);
-
-    app.set('Parse', {
-        Server: server
-    });
 
     return app;
 

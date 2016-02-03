@@ -17,9 +17,18 @@ class PromiseRouter {
         //     response: a json object with the content of the response
         //     location: optional. a location header
         this._routes = [];
+    }
 
-        // Global flag. Set this to true to log every request and response.
-        this._verbose = verbose || false;
+    static get verbose () {
+        if (this._verbose === 'undefined') {
+            this._verbose = false;
+        }
+
+        return this._verbose;
+    }
+
+    static set verbose (value) {
+        this._verbose = value;
     }
 
     get routes() {
@@ -106,20 +115,20 @@ class PromiseRouter {
     mountOnto(expressApp) {
         for (let route of this.routes) {
             switch(route.method) {
-            case 'POST':
-                expressApp.post(route.path, makeExpressHandler(route.handler));
-                break;
-            case 'GET':
-                expressApp.get(route.path, makeExpressHandler(route.handler));
-                break;
-            case 'PUT':
-                expressApp.put(route.path, makeExpressHandler(route.handler));
-                break;
-            case 'DELETE':
-                expressApp.delete(route.path, makeExpressHandler(route.handler));
-                break;
-            default:
-                throw 'unexpected code branch';
+                case 'POST':
+                    expressApp.post(route.path, makeExpressHandler(route.handler));
+                    break;
+                case 'GET':
+                    expressApp.get(route.path, makeExpressHandler(route.handler));
+                    break;
+                case 'PUT':
+                    expressApp.put(route.path, makeExpressHandler(route.handler));
+                    break;
+                case 'DELETE':
+                    expressApp.delete(route.path, makeExpressHandler(route.handler));
+                    break;
+                default:
+                    throw 'unexpected code branch';
             }
         }
     }
@@ -138,10 +147,14 @@ export function makeExpressHandler(promiseHandler) {
             }
             promiseHandler(req)
             .then((result) => {
-                if (!result.response) {
+                if (result && !result.response) {
                     console.log('BUG: the handler did not include a "response" field');
-                    throw 'control should not get here';
+                    throw new Error('control should not get here');
+                } else if (!result) {
+                    console.log('BUG: the handler didnt return a result..');
+                    throw new Error('control should not get here');
                 }
+
                 if (PromiseRouter.verbose) {
                     console.log('response:', JSON.stringify(result.response, null, 2));
                 }
@@ -156,14 +169,19 @@ export function makeExpressHandler(promiseHandler) {
                     console.log('error:', e);
                 }
                 next(e);
+            }).catch((error) => {
+                next(error);
             });
         } catch (e) {
             if (PromiseRouter.verbose) {
+                console.error(e, e.stack);
                 console.log('error:', e);
             }
             next(e);
         }
     };
 }
+
+PromiseRouter.verbose = false;
 
 export default PromiseRouter;

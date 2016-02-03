@@ -1,6 +1,6 @@
 // Sets up a Parse API server for testing.
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000;
 
 import path from 'path';
 import express from 'express';
@@ -30,7 +30,6 @@ const Server = app.get('Parse').Server;
 const DatabaseProvider = Server.getDatabaseProvider();
 const DatabaseAdapter = DatabaseProvider.getDatabaseConnection('test', 'test_');
 const cache = Server.getCacheProvider().cache;
-console.log(cache.getApp('test', 'test_'));
 const config = new Config({
     app: cache.getApp('test', 'test_')
 });
@@ -124,6 +123,7 @@ function expectSuccess(params) {
   return {
     success: params.success,
     error: function(e) {
+        console.error(e);
       console.log('got error', e);
       fail('failure happened in expectSuccess');
     },
@@ -203,8 +203,8 @@ function mockFacebook() {
 
 function clearData() {
     let promises = [];
-    for (let conn in DatabaseAdapter.dbConnections) {
-        promises.push(DatabaseAdapter.dbConnections[conn].deleteEverything());
+    for (let conn in DatabaseProvider.dbConnections) {
+        promises.push(DatabaseProvider.dbConnections[conn].deleteEverything());
     }
     return Promise.all(promises);
 }

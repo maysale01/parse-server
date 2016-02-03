@@ -35,6 +35,8 @@ export default class RestClient {
 
         return Promise.resolve()
         .then(() => {
+            // Make sure that you do not catch any exceptions throw in this promise chain.. 
+            // they need to propagate so that the lifecycle hooks will effectively cancel a transaction.
             if (triggers.getTrigger(className, 'beforeDelete') ||
             triggers.getTrigger(className, 'afterDelete') ||
             className == '_Session') {
@@ -46,11 +48,8 @@ export default class RestClient {
                           inflatedObject = Parse.Object.fromJSON(response.results[0]);
                           return triggers.maybeRunTrigger('beforeDelete', auth, inflatedObject);
                       }
-                      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Object not found for delete.');
+                      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `[RestClient: ${className}]: Object not found for delete.`);
                 })
-                .catch((error) => {
-                    console.error(error, error.stack);
-                });
             }
             return Promise.resolve({});
         }).then(() => {

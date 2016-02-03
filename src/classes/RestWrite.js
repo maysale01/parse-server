@@ -4,7 +4,7 @@
 import { Parse } from 'parse/node';
 import crypto from 'crypto';
 import deepcopy from 'deepcopy';
-import { rack } from 'hat';
+import hat from 'hat';
 
 import { password as passwordCrypto, facebook, triggers } from '../utils';
 
@@ -20,6 +20,8 @@ import { default as Config } from './Config';
 // RestWrite will handle objectId, createdAt, and updatedAt for
 // everything. It also knows to use triggers and special modifications
 // for the _User class.
+
+const rack = hat.rack();
 
 class RestWrite {
     constructor(config, auth, className, query, data, originalData) {
@@ -163,6 +165,9 @@ class RestWrite {
 
     // Validates this operation against the schema.
     validateSchema() {
+        if (!this.config.database) {
+            throw new Error('Database must be defined on the config!');
+        }
         return this.config.database.validateObject(this.className, this.data);
     }
 
@@ -332,7 +337,6 @@ class RestWrite {
         }
 
         let promise = Promise.resolve();
-
         if (!this.query) {
             let token = 'r:' + rack();
             this.storage['token'] = token;
@@ -460,7 +464,7 @@ class RestWrite {
         if (this.data.ACL) {
             throw new Parse.Error(Parse.Error.INVALID_KEY_NAME, 'Cannot set ACL on a Session.');
         }
-
+        
         if (!this.query && !this.auth.isMaster) {
             let token = 'r:' + rack();
             let sessionData = {

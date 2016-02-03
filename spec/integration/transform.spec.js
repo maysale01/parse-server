@@ -1,7 +1,7 @@
 // These tests are unit tests designed to only test transform.js.
-var path = require('path');
-
-var transform               = require(path.resolve('src/utils/transform'));
+import {
+    transform
+} from '../../src/utils';
 
 var dummySchema = {
     data: {},

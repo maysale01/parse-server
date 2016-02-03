@@ -9,7 +9,7 @@ class Auth {
     constructor(config, isMaster, userObject) {
         this._config = config;
         this._isMaster = isMaster;
-        this._userObject = userObject;
+        this._user = userObject;
 
         // Assuming a users roles won't change during a single request, we'll
         // only load them once.
@@ -26,8 +26,8 @@ class Auth {
         return this._isMaster;
     }
 
-    get userObject() {
-        return this._userObject;
+    get user() {
+        return this._user;
     }
 
     get userRoles() {
@@ -40,6 +40,30 @@ class Auth {
 
     get rolePromise() {
         return this._rolePromise;
+    }
+
+    set config (value) {
+        this._config = value;
+    }
+
+    set isMaster (value) {
+        this._isMaster = value;
+    }
+
+    set user (value) {
+        this._user = value;
+    }
+
+    set userRoles (value) {
+        this._userRoles = value;
+    }
+    
+    set fetchedRoles (value) {
+        this._fetchedRoles = value;
+    }
+
+    set rolePromise (value) {
+        this._rolePromise = value;
     }
 
     // A helper to get a master-level Auth object
@@ -69,7 +93,7 @@ class Auth {
         return query.execute().then((response) => {
             let results = response.results;
             if (results.length !== 1 || !results[0]['user']) {
-                return nobody(config);
+                return Auth.nobody(config);
             }
             let obj = results[0]['user'];
             delete obj.password;

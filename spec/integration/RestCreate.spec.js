@@ -5,11 +5,12 @@ import { Parse } from 'parse/node';
 import { rest } from '../../src/utils';
 import { Auth } from '../../src/classes';
 
-let config = Object.assign({}, Config);
+let config = Config;
 
 describe('rest create', () => {
   it('handles _id', (done) => {
-    rest.create(config, Auth.nobody(config), 'Foo', {}).then(() => {
+    rest.create(config, Auth.nobody(config), 'Foo', {})
+    .then(() => {
       return DatabaseAdapter.mongoFind('Foo', {});
     }).then((results) => {
       expect(results.length).toEqual(1);
@@ -17,6 +18,8 @@ describe('rest create', () => {
       expect(typeof obj._id).toEqual('string');
       expect(obj.objectId).toBeUndefined();
       done();
+    }).catch((error) => {
+        console.error(error);
     });
   });
 
@@ -26,8 +29,9 @@ describe('rest create', () => {
       object: {foo: 'bar'},
       date: Parse._encode(new Date()),
     };
-    rest.create(config, Auth.nobody(config), 'MyClass', obj).then(() => {
-      return database.mongoFind('MyClass', {}, {});
+    rest.create(config, Auth.nobody(config), 'MyClass', obj)
+    .then(() => {
+      return DatabaseAdapter.mongoFind('MyClass', {}, {});
     }).then((results) => {
       expect(results.length).toEqual(1);
       var mob = results[0];
@@ -35,6 +39,8 @@ describe('rest create', () => {
       expect(typeof mob.object).toBe('object');
       expect(mob.date instanceof Date).toBe(true);
       done();
+    }).catch((error) => {
+        console.error(error);
     });
   });
 
@@ -89,7 +95,7 @@ describe('rest create', () => {
     };
     rest.create(config, Auth.nobody(config), 'APointerDarkly', obj)
       .then((r) => {
-        return database.mongoFind('APointerDarkly', {});
+        return DatabaseAdapter.mongoFind('APointerDarkly', {});
       }).then((results) => {
         expect(results.length).toEqual(1);
         var output = results[0];

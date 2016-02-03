@@ -226,10 +226,10 @@ class ExportAdapter extends DatabaseAdapterInterface {
             return coll.findAndModify(mongoWhere, {}, mongoUpdate, {});
         }).then((result) => {
             if (!result.value) {
-                return Promise.reject(new Parse.Error(OBJECT_NOT_FOUND_ERROR, 'Object not found.'));
+                return Promise.reject(new Parse.Error(OBJECT_NOT_FOUND_ERROR, '[Export Adapter]: Object not found.'));
             }
             if (result.lastErrorObject.n != 1) {
-                return Promise.reject(new Parse.Error(OBJECT_NOT_FOUND_ERROR, 'Object not found.'));
+                return Promise.reject(new Parse.Error(OBJECT_NOT_FOUND_ERROR, '[Export Adapter]: Object not found.'));
             }
 
             let response = {};
@@ -298,6 +298,7 @@ class ExportAdapter extends DatabaseAdapterInterface {
             owningId: fromId
         };
 
+        let className = `_Join:${key}:${fromClassName}`;
         return this.collection(className)
         .then((coll) => {
             return coll.update(doc, doc, {upsert: true});
@@ -314,7 +315,7 @@ class ExportAdapter extends DatabaseAdapterInterface {
             owningId: fromId
         };
 
-        let className = `_Join: ${key}:${fromClassName}`;
+        let className = `_Join:${key}:${fromClassName}`;
         return this.collection(className)
         .then((coll) => {
             return coll.remove(doc);
@@ -360,11 +361,10 @@ class ExportAdapter extends DatabaseAdapterInterface {
         }).then((resp) => {
             if (resp.result.n === 0) {
                 return Promise.reject(
-                    new Parse.Error(OBJECT_NOT_FOUND_ERROR, 'Object not found.')
+                    new Parse.Error(OBJECT_NOT_FOUND_ERROR, '[Export Adapter]: Object not found.')
                 );
             }
-        })
-        .catch((error) => {
+        }, (error) => {
             throw error;
         });
     }
@@ -430,7 +430,7 @@ class ExportAdapter extends DatabaseAdapterInterface {
     // Returns a promise for a list of related ids given an owning id.
     // className here is the owning className.
     relatedIds(className, key, owningId) {
-        let joinTable = `_Join: ${key}:${className}`;
+        let joinTable = `_Join:${key}:${className}`;
         return this.collection(joinTable)
         .then((coll) => {
             return coll.find({owningId: owningId}).toArray();
@@ -442,7 +442,7 @@ class ExportAdapter extends DatabaseAdapterInterface {
     // Returns a promise for a list of owning ids given some related ids.
     // className here is the owning className.
     owningIds(className, key, relatedIds) {
-        let joinTable = `_Join: ${key}:${className}`;
+        let joinTable = `_Join:${key}:${className}`;
         return this.collection(joinTable)
         .then((coll) => {
             return coll.find({relatedId: {'$in': relatedIds}}).toArray();

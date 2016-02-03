@@ -5,7 +5,7 @@ import { Parse } from 'parse/node';
 import { rest } from '../../src/utils';
 import { Auth } from '../../src/classes';
 
-let config = Object.assign({}, Config);
+let config = Config;
 var nobody = Auth.nobody(config);
 
 describe('rest query', () => {

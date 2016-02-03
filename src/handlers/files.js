@@ -4,7 +4,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mime from 'mime';
 import { Parse } from 'parse/node';
-import { rack } from 'hat';
+import hat from 'hat';
 import { Config } from '../classes';
 import * as middlewares from '../middlewares';
 import Debug from 'debug';
@@ -12,6 +12,7 @@ import util from 'util';
 
 const logError = new Debug('parse-server:errors:handlers/files');
 const router = express.Router();
+const rack = hat.rack();
 
 export function processCreate(req, res, next) {
     const Server = req.Parse.Server;

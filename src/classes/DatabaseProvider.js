@@ -32,6 +32,10 @@ class DatabaseProvider {
     }
 
     getDatabaseConnection(appId, collectionPrefix = "") {
+        if (!appId) {
+            throw new Error('You must pass a valid string as an appId to the getDatabaseConnection method!');
+        }
+
         if (this._dbConnections[appId]) {
             return this._dbConnections[appId];
         }

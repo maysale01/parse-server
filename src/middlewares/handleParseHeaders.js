@@ -69,7 +69,7 @@ export default function handleParseHeaders(req, res, next) {
     }
 
     if (fileViaJSON) {
-    // We need to repopulate req.body with a buffer
+        // We need to repopulate req.body with a buffer
         var base64 = req.body.base64;
         req.body = new Buffer(base64, 'base64');
     }
@@ -79,6 +79,11 @@ export default function handleParseHeaders(req, res, next) {
         app: info.app, 
         mount: getMount(req)
     });
+    if (!req.config.database) {
+        console.log(cache.apps);
+        console.log(req.body);
+        throw new Error('Why not database');
+    }
     req.database = req.config.database;
     req.info = info;
 
@@ -123,7 +128,7 @@ export default function handleParseHeaders(req, res, next) {
         }
     }).catch((error) => {
         // TODO: Determine the correct error scenario.
-        console.log(error);
+        console.error(error.stack);
         throw new Parse.Error(Parse.Error.UNKNOWN_ERROR, error);
     });
 

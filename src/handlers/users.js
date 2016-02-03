@@ -2,11 +2,12 @@
 
 import mongodb from 'mongodb';
 import { Parse } from 'parse/node';
-import { rack } from 'hat';
+import hat from 'hat';
 import { Auth, PromiseRouter, RestWrite } from '../classes';
 import { password as passwordCrypto, facebook, rest } from '../utils';
 
 const router  = new PromiseRouter();
+const rack = hat.rack();
 
 // Returns a promise for a {status, response, location} object.
 export function handleCreate(req) {
@@ -30,16 +31,17 @@ export function handleLogIn(req) {
         throw new Parse.Error(Parse.Error.PASSWORD_MISSING, 'password is required.');
     }
 
+    // Make sure not to catch any errors from the promise chain, let them propagate.
     return req.database.find('_User', {username: req.body.username})
     .then((results) => {
         if (!results.length) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Invalid username/password.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[No results]: Invalid username/password.');
         }
         user = results[0];
         return passwordCrypto.compare(req.body.password, user.password);
     }).then((correct) => {
         if (!correct) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Invalid username/password.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[Bad creds]: Invalid username/password.');
         }
         let token = 'r:' + rack();
         user.sessionToken = token;
@@ -71,8 +73,6 @@ export function handleLogIn(req) {
         return create.execute();
     }).then(() => {
         return {response: user};
-    }).catch((error) => {
-        console.error(error, error.stack);
     });
 }
 
@@ -113,7 +113,7 @@ export function handleGet(req) {
     return rest.find(req.config, req.auth, '_User', {objectId: req.params.objectId})
     .then((response) => {
         if (!response.results || response.results.length == 0) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,   'Object not found.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
         } else {
             return {response: response.results[0]};
         }
@@ -122,7 +122,7 @@ export function handleGet(req) {
 
 export function handleMe(req) {
     if (!req.info || !req.info.sessionToken) {
-        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,   'Object not found.');
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '_User]: Object not found.');
     }
 
     let promise = rest.find(
@@ -137,7 +137,7 @@ export function handleMe(req) {
     .then((response) => {
         if (!response.results || response.results.length == 0 ||
         !response.results[0].user) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,   'Object not found.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
         } else {
             let user = response.results[0].user;
             return {response: user};

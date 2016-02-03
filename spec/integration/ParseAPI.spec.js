@@ -178,7 +178,8 @@ describe('miscellaneous', function() {
     obj.set('foo', 'bar');
     obj.save().then(function() {
       var query = new Parse.Query('BeforeSaveChanged');
-      query.get(obj.id).then(function(objAgain) {
+      query.get(obj.id)
+      .then(function(objAgain) {
         expect(objAgain.get('foo')).toEqual('baz');
         done();
       }, function(error) {
@@ -319,18 +320,22 @@ describe('miscellaneous', function() {
   });
 
   it('test rest_create_app', function(done) {
-    var appId;
-    Parse._request('POST', 'rest_create_app').then((res) => {
+    let appId, database;
+    Parse._request('POST', 'rest_create_app')
+    .then((res) => {
       expect(typeof res.application_id).toEqual('string');
       expect(res.master_key).toEqual('master');
+
       appId = res.application_id;
+
+      // Get the database connection for the new app
+      database = DatabaseProvider.getDatabaseConnection(appId, `${appId}_`);
       Parse.initialize(appId, 'unused');
       var obj = new Parse.Object('TestObject');
       obj.set('foo', 'bar');
       return obj.save();
     }).then(() => {
-      var db = DatabaseAdapter.getDatabaseConnection(appId);
-      return db.mongoFind('TestObject', {}, {});
+      return database.mongoFind('TestObject', {}, {});
     }).then((results) => {
       expect(results.length).toEqual(1);
       expect(results[0]['foo']).toEqual('bar');
