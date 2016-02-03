@@ -5,7 +5,7 @@ export default function handleParseErrors(err, req, res, next) {
         var httpStatus;
 
     // TODO: fill out this mapping
-        switch (err.code) {
+    switch (err.code) {
         case Parse.Error.INTERNAL_SERVER_ERROR:
             httpStatus = 500;
             break;
@@ -19,9 +19,8 @@ export default function handleParseErrors(err, req, res, next) {
         res.status(httpStatus);
         res.json({code: err.code, error: err.message});
     } else {
-        console.log('Uncaught internal server error.', err, err.stack);
+        console.error('Uncaught internal server error.', err, err.stack);
         res.status(500);
-        res.json({code: Parse.Error.INTERNAL_SERVER_ERROR,
-              message: 'Internal server error.'});
+        res.json({code: Parse.Error.INTERNAL_SERVER_ERROR, message: 'Internal server error.'});
     }
 };

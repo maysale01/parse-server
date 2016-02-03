@@ -1,6 +1,6 @@
 import { Parse } from 'parse/node';
 import { Auth, Config } from '../classes';
-import { cache } from '../utils';
+import { getMount } from '../utils';
 
 // Checks that the request is authorized for this app and checks user
 // auth too.
@@ -9,9 +9,8 @@ import { cache } from '../utils';
 // req.config - the Config for this app
 // req.auth - the Auth for this request
 export default function handleParseHeaders(req, res, next) {
-    var mountPathLength = req.originalUrl.length - req.url.length;
-    var mountPath = req.originalUrl.slice(0, mountPathLength);
-    var mount = req.protocol + '://' + req.get('host') + mountPath;
+    const Server = req.Parse.Server;
+    const cache = Server.getCacheProvider().cache;
 
     var info = {
         appId: req.get('X-Parse-Application-Id'),
@@ -76,14 +75,17 @@ export default function handleParseHeaders(req, res, next) {
     }
 
     info.app = cache.apps[info.appId];
-    req.config = new Config(info.appId, mount);
+    req.config = new Config({
+        app: info.app, 
+        mount: getMount(req)
+    });
     req.database = req.config.database;
     req.info = info;
 
     var isMaster = (info.masterKey === req.config.masterKey);
 
     if (isMaster) {
-        req.auth = new Auth.Auth(req.config, true);
+        req.auth = new Auth(req.config, true);
         next();
         return;
     }
@@ -108,12 +110,12 @@ export default function handleParseHeaders(req, res, next) {
     }
 
     if (!info.sessionToken) {
-        req.auth = new Auth.Auth(req.config, false);
+        req.auth = new Auth(req.config, false);
         next();
         return;
     }
 
-    return Auth.getAuthForSessionToken(req.config, info.sessionToken)
+    return Auth.getAuthForSessionToken(cache, req.config, info.sessionToken)
     .then((auth) => {
         if (auth) {
             req.auth = auth;
@@ -127,7 +129,7 @@ export default function handleParseHeaders(req, res, next) {
 
 }
 
-function invalidRequest(req, res) {
+export function invalidRequest(req, res) {
     res.status(403);
     res.end('{"error":"unauthorized"}');
 }

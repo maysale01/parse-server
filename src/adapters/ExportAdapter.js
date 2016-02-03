@@ -5,6 +5,7 @@ import { MongoClient } from 'mongodb';
 import { Parse } from 'parse/node';
 import { transform } from '../utils';
 import { default as DatabaseAdapterInterface } from '../interfaces/DatabaseAdapter';
+import { Schema } from '../classes';
 
 // Generally just for internal use.
 const joinRegex = /^_Join:[A-Za-z0-9_]+:[A-Za-z0-9_]+/;
@@ -46,6 +47,30 @@ class ExportAdapter extends DatabaseAdapterInterface {
         // it. Instead, use loadSchema to get a schema.
         this._schemaPromise = null;
         this.connect();
+    }
+
+    get mongoURI () {
+        return this._mongoURI;
+    }
+
+    get collectionPrefix () {
+        return this._collectionPrefix;
+    }
+
+    get db () {
+        return this._db;
+    }
+
+    set mongoURI (value) {
+        this._mongoURI = value;
+    }
+
+    set collectionPrefix (value) {
+        this._collectionPrefix = value;
+    }
+
+    set db (value) {
+        this._db = value;
     }
 
     // Connects to the database. Returns a promise that resolves when the
@@ -563,8 +588,8 @@ class ExportAdapter extends DatabaseAdapterInterface {
             let mongoWhere = transform.transformWhere(schema, className, query);
             if (!isMaster) {
                 let orParts = [
-            {'_rperm' : { '$exists': false }},
-            {'_rperm' : { '$in' : ['*']}}
+                    {'_rperm' : { '$exists': false }},
+                    {'_rperm' : { '$in' : ['*']}}
                 ];
                 for (let acl of aclGroup) {
                     orParts.push({'_rperm' : { '$in' : [acl]}});
@@ -575,12 +600,12 @@ class ExportAdapter extends DatabaseAdapterInterface {
                 return coll.count(mongoWhere, mongoOptions);
             } else {
                 return this.smartFind(coll, mongoWhere, mongoOptions)
-            .then((mongoResults) => {
-                return mongoResults.map((r) => {
-                    return this.untransformObject(
-                  schema, isMaster, aclGroup, className, r);
+                .then((mongoResults) => {
+                    return mongoResults.map((r) => {
+                        return this.untransformObject(
+                      schema, isMaster, aclGroup, className, r);
+                    });
                 });
-            });
             }
         });
     }

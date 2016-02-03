@@ -20,25 +20,35 @@ import {
 addParseCloud();
 
 export function initParseServer(args = {}) {
-
     const server = new ParseServer(args);
 
     // TODO: Make this handle multiple apps passed in via args.apps
     let newParseApp = new ParseApp(args);
+    newParseApp.database = server.getDatabaseProvider().getDatabaseConnection(newParseApp.appId, newParseApp.collectionPrefix);
     
     // To maintain compatibility. TODO: Remove in v2.1
     if (process.env.FACEBOOK_APP_ID) {
         newParseApp['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
     }
 
-    server.registerApp(newParseApp.id, newParseApp);
+    server.registerApp(newParseApp.applicationId, newParseApp);
 
     // TODO: Move this to the ParseApp class and scope the global for each application
     // Initialize the node client SDK automatically
-    Parse.initialize(args.appId, args.javascriptKey || '', args.masterKey);
+    // 
+    Parse.initialize(args.appId || args.applicationId, args.javascriptKey || '', args.masterKey);
 
     const app = express();
     const router = new PromiseRouter();
+
+    // Allow access to the server and apps
+    app.use(function(req, res, next) {
+        req.Parse = {
+            Server: server
+        };
+
+        next();
+    });
 
     // File handling needs to be before default middlewares are applied
     app.use('/', handlers.files);
@@ -46,7 +56,7 @@ export function initParseServer(args = {}) {
     // TODO: separate this from the regular ParseServer object
     if (process.env.TESTING == 1) {
         console.log('enabling integration testingRoutes');
-        app.use('/', handlers.testingRoutes.router);
+        app.use('/', handlers.testingRoutes);
     }
 
     app.use(bodyParser.json({ 'type': '*/*' }));
@@ -69,15 +79,6 @@ export function initParseServer(args = {}) {
     router.mountOnto(app);
 
     app.use(middlewares.handleParseErrors);
-
-    // Allow access to the server and apps
-    app.use(function(req, res, next) {
-        req.Parse = {
-            Server: server
-        };
-
-        next();
-    });
 
     app.set('Parse', {
         Server: server

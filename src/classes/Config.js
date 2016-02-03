@@ -1,27 +1,59 @@
 // A Config object provides information about how a specific app is
 // configured.
 // mount is the URL for the root of the API; includes http, domain, etc.
-function Config(applicationId, mount) {
-    var cache = require('../utils/cache');
+export default class Config {
+    constructor(args = {}) { 
+        if (!args.app) {
+            throw new Error('Config requires an instance of ParseApp!');
+        }
 
-    var cacheInfo = cache.apps[applicationId];
-    this.valid = !!cacheInfo;
-    if (!this.valid) {
-        return;
+        this._app = args.app;
+        this._mount = args.mount;
     }
 
-    this.applicationId = applicationId;
-    this.collectionPrefix = cacheInfo.collectionPrefix || '';
-    this.database = DatabaseProvider.getDatabaseConnection(applicationId, this.collectionPrefix);
-    this.masterKey = cacheInfo.masterKey;
-    this.clientKey = cacheInfo.clientKey;
-    this.javascriptKey = cacheInfo.javascriptKey;
-    this.dotNetKey = cacheInfo.dotNetKey;
-    this.restAPIKey = cacheInfo.restAPIKey;
-    this.fileKey = cacheInfo.fileKey;
-    this.facebookAppIds = cacheInfo.facebookAppIds;
-    this.mount = mount;
+    get applicationId() {
+        return this._app.applicationId;
+    }
+
+    get collectionPrefix() {
+        return this._app.collectionPrefix;
+    }
+
+    get masterKey() {
+        return this._app.masterKey;
+    }
+
+    get clientKey() {
+        return this._app.clientKey;
+    }
+    
+    get javascriptKey() {
+        return this._app.javascriptKey;
+    }
+
+    get dotNetKey() {
+        return this._app.dotNetKey;
+    }
+
+    get restAPIKey() {
+        return this._app.restAPIKey;
+    }
+
+    get fileKey() {
+        return this._app.fileKey;
+    }
+
+    get facebookAppIds() {
+        return this._app.facebookAppIds;
+    }
+
+    get database() {
+        return this._app.database;
+    }
+
+    get mount() {
+        return this._mount;
+    }
 }
 
-
-module.exports = Config;
+export default Config;

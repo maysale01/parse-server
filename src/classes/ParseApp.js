@@ -1,10 +1,15 @@
 class ParseApp {
     constructor(args) {
-        if (!args.appId || !args.masterKey) {
-            throw 'You must provide an appId and masterKey!';
+        // Backwards compatible
+        if (args.appId && !args.applicationId) {
+            args.applicationId = args.appId;
         }
 
-        this._appId = args.appId;
+        if (!args.applicationId || !args.masterKey) {
+            throw 'You must provide an applicationId and masterKey!';
+        }
+
+        this._applicationId = args.applicationId;
         this._masterKey = args.masterKey;
         this._collectionPrefix = args.collectionPrefix || '';
         this._clientKey = args.clientKey || '';
@@ -13,10 +18,11 @@ class ParseApp {
         this._restAPIKey = args.restAPIKey || '';
         this._fileKey = args.fileKey || 'invalid-file-key';
         this._facebookAppIds = args.facebookAppIds || [];
+        this._database = args.database;
     }
 
-    get id() {
-        return this._appId;
+    get applicationId() {
+        return this._applicationId;
     }
 
     get masterKey() {
@@ -51,8 +57,12 @@ class ParseApp {
         return this._facebookAppIds;
     }
 
-    set id(value) {
-        this._appId = value;
+    get database() {
+        return this._database;
+    }
+
+    set applicationId(value) {
+        this._applicationId = value;
     }
 
     set masterKey(value) {
@@ -85,6 +95,10 @@ class ParseApp {
 
     set facebookAppIds(value) {
         this._facebookAppIds = value;
+    }
+
+    set database(value) {
+        this._database = value;
     }
 }
 

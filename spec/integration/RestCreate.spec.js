@@ -1,15 +1,11 @@
 // These tests check the "create" functionality of the REST API.
 
-var path = require('path');
+import request from 'request';
+import { Parse } from 'parse/node';
+import { rest } from '../../src/utils';
+import { Auth } from '../../src/classes';
 
-
-var cache               = require(path.resolve('src/utils/cache'));
-var rest                = require(path.resolve('src/utils/rest'));
-var Auth                = require(path.resolve('src/classes/Auth'));
-var Config              = require(path.resolve('src/classes/Config'));
-var Parse               = require('parse/node').Parse;
-var request             = require('request');
-var config              = new Config('test');
+let config = Object.assign({}, Config);
 
 describe('rest create', () => {
   it('handles _id', (done) => {

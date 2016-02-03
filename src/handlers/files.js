@@ -7,10 +7,13 @@ import { Parse } from 'parse/node';
 import { rack } from 'hat';
 import { Config } from '../classes';
 import * as middlewares from '../middlewares';
+import Debug from 'debug';
+import util from 'util';
 
+const logError = new Debug('parse-server:errors:handlers/files');
 const router = express.Router();
 
-function processCreate(req, res, next) {
+export function processCreate(req, res, next) {
     const Server = req.Parse.Server;
 
     if (!req.body || !req.body.length) {
@@ -45,17 +48,19 @@ function processCreate(req, res, next) {
     .create(req.config, filename, req.body)
     .then(() => {
         res.status(201);
-        let location = req.Parse.server.getFilesProvider().getAdapter().location(req.config, req, filename);
+        let location = Server.getFilesProvider().getAdapter().location(req.config, req, filename);
         res.set('Location', location);
         res.json({ url: location, name: filename });
     }).catch((error) => {
+        console.error(error, error.stack);
         next(new Parse.Error(Parse.Error.FILE_SAVE_ERROR, 'Could not store file.'));
     });
 };
 
-function processGet(req, res) {
+export function processGet(req, res) {
     const Server = req.Parse.Server;
-    const config = new Config(req.params.appId);
+    const app = Server.getCacheProvider().cache.getApp(req.params.applicationId);
+    const config = new Config({ app: app });
 
     Server
     .getFilesProvider()
@@ -74,7 +79,7 @@ function processGet(req, res) {
 };
 
 // Handle file retrieval
-router.get('/files/:appId/:filename', processGet);
+router.get('/files/:applicationId/:filename', processGet);
 
 // Handle a post to files without the filename parameter
 router.post('/files', function(req, res, next) {

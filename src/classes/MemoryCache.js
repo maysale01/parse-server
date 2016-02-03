@@ -14,12 +14,17 @@ export default class MemoryCache {
         this._isLoaded = value;
     }
 
+    // TODO: remove this.. backwards compatibility for the time being
+    get apps() {
+        return this._apps;
+    }
+
     registerApp(appId, app) {
         this._apps[appId] = app;
     }
 
-    getApp(appId, callback) {
-        return callback(true, this._apps[appId]);
+    getApp(appId) {
+        return this._apps[appId];
     }
 
     updateStat(key, value) {

@@ -1,16 +1,16 @@
 // functions.js
-var Parse           = require('parse/node').Parse;
-var PromiseRouter   = require('../classes/PromiseRouter');
-var rest            = require('../utils/rest');
+import { Parse } from 'parse/node';
+import { PromiseRouter } from '../classes';
+import { rest } from '../utils';
 
-var router = new PromiseRouter();
+const router = new PromiseRouter();
 
-function handleCloudFunction(req) {
-  // TODO: set user from req.auth
+export function handleCloudFunction(req) {
+    // TODO: set user from req.auth
     if (Parse.Cloud.Functions[req.params.functionName]) {
         return new Promise(function (resolve, reject) {
-            var response = createResponseObject(resolve, reject);
-            var request = {
+            let response = createResponseObject(resolve, reject);
+            let request = {
                 params: req.body || {}
             };
             Parse.Cloud.Functions[req.params.functionName](request, response);
@@ -20,7 +20,7 @@ function handleCloudFunction(req) {
     }
 }
 
-function createResponseObject(resolve, reject) {
+export function createResponseObject(resolve, reject) {
     return {
         success: function(result) {
             resolve({
@@ -38,4 +38,4 @@ function createResponseObject(resolve, reject) {
 router.route('POST', '/functions/:functionName', handleCloudFunction);
 
 
-module.exports = router;
+export default router;

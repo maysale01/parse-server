@@ -1,12 +1,13 @@
 // Sets up a Parse API server for testing.
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 2500;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
 
 import path from 'path';
 import express from 'express';
 
 import { facebook } from '../../src/utils';
 import { ParseServer } from '../../src';
+import { Config } from '../../src/classes';
 
 let databaseURI = process.env.DATABASE_URI;
 let cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js');
@@ -15,7 +16,7 @@ let cloudMain = process.env.CLOUD_CODE_MAIN || path.resolve('src/cloud/main.js')
 let app = new ParseServer({
     databaseURI: databaseURI,
     cloud: cloudMain,
-    appId: 'test',
+    applicationId: 'test',
     javascriptKey: 'test',
     dotNetKey: 'windows',
     clientKey: 'client',
@@ -25,8 +26,14 @@ let app = new ParseServer({
     fileKey: 'test'
 });
 
-const DatabaseProvider = app.get('Parse').Server.getDatabaseProvider();
+const Server = app.get('Parse').Server;
+const DatabaseProvider = Server.getDatabaseProvider();
 const DatabaseAdapter = DatabaseProvider.getDatabaseConnection('test', 'test_');
+const cache = Server.getCacheProvider().cache;
+console.log(cache.getApp('test', 'test_'));
+const config = new Config({
+    app: cache.getApp('test', 'test_')
+});
 
 let testApp = express();
 let port = 8378;
@@ -50,7 +57,8 @@ beforeEach(function(done) {
 
 afterEach(function(done) {
   Parse.User.logOut();
-  Parse.Promise.as().then(() => {
+  Parse.Promise.as()
+  .then(() => {
     return clearData();
   }).then(() => {
     done();
@@ -221,3 +229,6 @@ global.jequal = jequal;
 global.range = range;
 global.DatabaseProvider = DatabaseProvider;
 global.DatabaseAdapter = DatabaseAdapter;
+global.Server = Server;
+global.Config = config;
+global.Cache = cache;

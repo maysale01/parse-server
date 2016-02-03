@@ -1,16 +1,16 @@
 // These methods handle the 'classes' routes.
 // Methods of the form 'handleX' return promises and are intended to
 // be used with the PromiseRouter.
-var Parse           = require('parse/node').Parse;
-var PromiseRouter   = require('../classes/PromiseRouter');
-var rest            = require('../utils/rest');
+import { Parse } from 'parse/node';
+import { PromiseRouter } from '../classes';
+import { rest} from '../utils';
 
-var router = new PromiseRouter();
+const router = new PromiseRouter();
 
 // Returns a promise that resolves to a {response} object.
-function handleFind(req) {
-    var body = Object.assign(req.body, req.query);
-    var options = {};
+export function handleFind(req) {
+    let body = Object.assign(req.body, req.query);
+    let options = {};
     if (body.skip) {
         options.skip = Number(body.skip);
     }
@@ -37,27 +37,23 @@ function handleFind(req) {
         body.where = JSON.parse(body.where);
     }
 
-    return rest.find(req.config, req.auth,
-                   req.params.className, body.where, options)
+    return rest.find(req.config, req.auth, req.params.className, body.where, options)
     .then((response) => {
         return {response: response};
     });
 }
 
 // Returns a promise for a {status, response, location} object.
-function handleCreate(req) {
-    return rest.create(req.config, req.auth,
-                     req.params.className, req.body);
+export function handleCreate(req) {
+    return rest.create(req.config, req.auth, req.params.className, req.body);
 }
 
 // Returns a promise for a {response} object.
-function handleGet(req) {
-    return rest.find(req.config, req.auth,
-                   req.params.className, {objectId: req.params.objectId})
+export function handleGet(req) {
+    return rest.find(req.config, req.auth, req.params.className, {objectId: req.params.objectId})
     .then((response) => {
         if (!response.results || response.results.length == 0) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
-                              'Object not found.');
+            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Object not found.');
         } else {
             return {response: response.results[0]};
         }
@@ -65,18 +61,18 @@ function handleGet(req) {
 }
 
 // Returns a promise for a {response} object.
-function handleDelete(req) {
-    return rest.del(req.config, req.auth,
-                  req.params.className, req.params.objectId)
+export function handleDelete(req) {
+    const Server = req.Parse.Server;
+    const cache = Server.getCacheProvider().cache;
+    return rest.del(req.config, req.auth, req.params.className, req.params.objectId, cache)
     .then(() => {
         return {response: {}};
     });
 }
 
 // Returns a promise for a {response} object.
-function handleUpdate(req) {
-    return rest.update(req.config, req.auth,
-                     req.params.className, req.params.objectId, req.body)
+export function handleUpdate(req) {
+    return rest.update(req.config, req.auth, req.params.className, req.params.objectId, req.body)
     .then((response) => {
         return {response: response};
     });
@@ -88,4 +84,4 @@ router.route('GET', '/classes/:className/:objectId', handleGet);
 router.route('DELETE',  '/classes/:className/:objectId', handleDelete);
 router.route('PUT', '/classes/:className/:objectId', handleUpdate);
 
-module.exports = router;
+export default router;

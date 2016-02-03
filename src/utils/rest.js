@@ -7,124 +7,110 @@
 // routes. That's useful for the routes that do really similar
 // things.
 
-var Parse = require('parse/node').Parse;
+import { Parse } from 'parse/node';
+import { default as triggers } from './triggers';
+import { RestQuery, RestWrite } from '../classes';
 
-var cache = require('./cache');
-var triggers = require('./triggers');
-
-var RestQuery = require('../classes/RestQuery');
-var RestWrite = require('../classes/RestWrite');
-
-// Returns a promise for an object with optional keys 'results' and 'count'.
-function find(config, auth, className, restWhere, restOptions) {
-    enforceRoleSecurity('find', className, auth);
-    var query = new RestQuery(config, auth, className,
-                            restWhere, restOptions);
-    return query.execute();
-}
-
-// Returns a promise that doesn't resolve to any useful value.
-function del(config, auth, className, objectId) {
-    if (typeof objectId !== 'string') {
-        throw new Parse.Error(Parse.Error.INVALID_JSON,
-                          'bad objectId');
+export default class RestClient {
+    // Returns a promise for an object with optional keys 'results' and 'count'.
+    static find(config, auth, className, restWhere, restOptions) {
+        RestClient.enforceRoleSecurity('find', className, auth);
+        let query = new RestQuery(config, auth, className, restWhere, restOptions);
+        return query.execute();
     }
 
-    if (className === '_User' && !auth.couldUpdateUserId(objectId)) {
-        throw new Parse.Error(Parse.Error.SESSION_MISSING,
-                          'insufficient auth to delete user');
-    }
-
-    enforceRoleSecurity('delete', className, auth);
-
-    var inflatedObject;
-
-    return Promise.resolve().then(() => {
-        if (triggers.getTrigger(className, 'beforeDelete') ||
-        triggers.getTrigger(className, 'afterDelete') ||
-        className == '_Session') {
-            return find(config, auth, className, {objectId: objectId})
-      .then((response) => {
-          if (response && response.results && response.results.length) {
-              response.results[0].className = className;
-              cache.clearUser(response.results[0].sessionToken);
-              inflatedObject = Parse.Object.fromJSON(response.results[0]);
-              return triggers.maybeRunTrigger('beforeDelete',
-                                          auth, inflatedObject);
-          }
-          throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND,
-                              'Object not found for delete.');
-      });
+    // Returns a promise that doesn't resolve to any useful value.
+    static del(config, auth, className, objectId, cache) {
+        if (typeof objectId !== 'string') {
+            throw new Parse.Error(Parse.Error.INVALID_JSON, 'bad objectId');
         }
-        return Promise.resolve({});
-    }).then(() => {
-        var options = {};
-        if (!auth.isMaster) {
-            options.acl = ['*'];
-            if (auth.user) {
-                options.acl.push(auth.user.id);
+
+        if (className === '_User' && !auth.couldUpdateUserId(objectId)) {
+            throw new Parse.Error(Parse.Error.SESSION_MISSING, 'insufficient auth to delete user');
+        }
+
+        RestClient.enforceRoleSecurity('delete', className, auth);
+
+        let inflatedObject;
+
+        return Promise.resolve()
+        .then(() => {
+            if (triggers.getTrigger(className, 'beforeDelete') ||
+            triggers.getTrigger(className, 'afterDelete') ||
+            className == '_Session') {
+                return RestClient.find(config, auth, className, {objectId: objectId})
+                .then((response) => {
+                      if (response && response.results && response.results.length) {
+                          response.results[0].className = className;
+                          cache.clearUser(response.results[0].sessionToken);
+                          inflatedObject = Parse.Object.fromJSON(response.results[0]);
+                          return triggers.maybeRunTrigger('beforeDelete', auth, inflatedObject);
+                      }
+                      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, 'Object not found for delete.');
+                })
+                .catch((error) => {
+                    console.error(error, error.stack);
+                });
             }
-        }
+            return Promise.resolve({});
+        }).then(() => {
+            let options = {};
+            if (!auth.isMaster) {
+                options.acl = ['*'];
+                if (auth.user) {
+                    options.acl.push(auth.user.id);
+                }
+            }
 
-        return config.database.destroy(className, {
-            objectId: objectId
-        }, options);
-    }).then(() => {
-        triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
-        return Promise.resolve();
-    });
-}
+            return config.database.destroy(className, {
+                objectId: objectId
+            }, options);
+        }).then(() => {
+            triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
+            return Promise.resolve();
+        });
+    }
 
-// Returns a promise for a {response, status, location} object.
-function create(config, auth, className, restObject) {
-    enforceRoleSecurity('create', className, auth);
-
-    var write = new RestWrite(config, auth, className, null, restObject);
-    return write.execute();
-}
-
-// Returns a promise that contains the fields of the update that the
-// REST API is supposed to return.
-// Usually, this is just updatedAt.
-function update(config, auth, className, objectId, restObject) {
-    enforceRoleSecurity('update', className, auth);
-
-    return Promise.resolve().then(() => {
-        if (triggers.getTrigger(className, 'beforeSave') ||
-        triggers.getTrigger(className, 'afterSave')) {
-            return find(config, auth, className, {objectId: objectId});
-        }
-        return Promise.resolve({});
-    }).then((response) => {
-        var originalRestObject;
-        if (response && response.results && response.results.length) {
-            originalRestObject = response.results[0];
-        }
-
-        var write = new RestWrite(config, auth, className,
-                              {objectId: objectId}, restObject, originalRestObject);
+    // Returns a promise for a {response, status, location} object.
+    static create(config, auth, className, restObject) {
+        RestClient.enforceRoleSecurity('create', className, auth);
+        let write = new RestWrite(config, auth, className, null, restObject);
         return write.execute();
-    });
+    }
+
+    // Returns a promise that contains the fields of the update that the
+    // REST API is supposed to return.
+    // Usually, this is just updatedAt.
+    static update(config, auth, className, objectId, restObject) {
+        RestClient.enforceRoleSecurity('update', className, auth);
+
+        return Promise.resolve().then(() => {
+            if (triggers.getTrigger(className, 'beforeSave') ||
+            triggers.getTrigger(className, 'afterSave')) {
+                return RestClient.find(config, auth, className, {objectId: objectId});
+            }
+            return Promise.resolve({});
+        }).then((response) => {
+            let originalRestObject;
+            if (response && response.results && response.results.length) {
+                originalRestObject = response.results[0];
+            }
+
+            let write = new RestWrite(config, auth, className,
+                                  {objectId: objectId}, restObject, originalRestObject);
+            return write.execute();
+        });
+    }
+
+    // Disallowing access to the _Role collection except by master key
+    static enforceRoleSecurity(method, className, auth) {
+        if (className === '_Role' && !auth.isMaster) {
+            throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN, `Clients aren\'t allowed to perform the ${method} operation on the role collection.`);
+        }
+        if (method === 'delete' && className === '_Installation' && !auth.isMaster) {
+            throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN, 'Clients aren\'t allowed to perform the delete operation on the installation collection.');
+        }
+    }
 }
 
-// Disallowing access to the _Role collection except by master key
-function enforceRoleSecurity(method, className, auth) {
-    if (className === '_Role' && !auth.isMaster) {
-        throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN,
-                          'Clients aren\'t allowed to perform the ' +
-                          method + ' operation on the role collection.');
-    }
-    if (method === 'delete' && className === '_Installation' && !auth.isMaster) {
-        throw new Parse.Error(Parse.Error.OPERATION_FORBIDDEN,
-                          'Clients aren\'t allowed to perform the ' +
-                          'delete operation on the installation collection.');
-
-    }
-}
-
-module.exports = {
-    create: create,
-    del: del,
-    find: find,
-    update: update
-};
+export default RestClient;

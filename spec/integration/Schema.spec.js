@@ -1,10 +1,8 @@
 // These tests check that the Schema operates correctly.
-var path = require('path');
 
-var Config              = require(path.resolve('src/classes/Config'));
-var Schema              = require(path.resolve('src/classes/Schema'));
+import { Schema } from '../../src/classes';
 
-var config = new Config('test');
+let config = Object.assign({}, Config);
 
 describe('Schema', () => {
   it('can validate one object', (done) => {

@@ -1,5 +1,5 @@
-var mongodb = require('mongodb');
-var Parse = require('parse/node').Parse;
+import { Parse } from 'parse/node';
+import mongodb from 'mongodb';
 
 // TODO: Turn this into a helper library for the database adapter.
 
@@ -21,7 +21,7 @@ var Parse = require('parse/node').Parse;
 // validate: true indicates that key names are to be validated.
 //
 // Returns an object with {key: key, value: value}.
-function transformKeyValue(schema, className, restKey, restValue, options) {
+export function transformKeyValue(schema, className, restKey, restValue, options) {
     options = options || {};
 
   // Check if the schema is known since it's a built-in field.
@@ -182,7 +182,7 @@ function transformKeyValue(schema, className, restKey, restValue, options) {
 // restWhere is the "where" clause in REST API form.
 // Returns the mongo form of the query.
 // Throws a Parse.Error if the input query is invalid.
-function transformWhere(schema, className, restWhere) {
+export function transformWhere(schema, className, restWhere) {
     var mongoWhere = {};
     if (restWhere['ACL']) {
         throw new Parse.Error(Parse.Error.INVALID_QUERY,
@@ -199,7 +199,7 @@ function transformWhere(schema, className, restWhere) {
 // Main exposed method to create new objects.
 // restCreate is the "create" clause in REST API form.
 // Returns the mongo form of the object.
-function transformCreate(schema, className, restCreate) {
+export function transformCreate(schema, className, restCreate) {
     var mongoCreate = transformACL(restCreate);
     for (var restKey in restCreate) {
         var out = transformKeyValue(schema, className, restKey, restCreate[restKey]);
@@ -211,7 +211,7 @@ function transformCreate(schema, className, restCreate) {
 }
 
 // Main exposed method to help update old objects.
-function transformUpdate(schema, className, restUpdate) {
+export function transformUpdate(schema, className, restUpdate) {
     if (!restUpdate) {
         throw 'got empty restUpdate';
     }
@@ -249,7 +249,7 @@ function transformUpdate(schema, className, restUpdate) {
 
 // Transforms a REST API formatted ACL object to our two-field mongo format.
 // This mutates the restObject passed in to remove the ACL key.
-function transformACL(restObject) {
+export function transformACL(restObject) {
     var output = {};
     if (!restObject['ACL']) {
         return output;
@@ -277,7 +277,7 @@ function transformACL(restObject) {
 
 // Transforms a mongo format ACL to a REST API format ACL key
 // This mutates the mongoObject passed in to remove the _rperm/_wperm keys
-function untransformACL(mongoObject) {
+export function untransformACL(mongoObject) {
     var output = {};
     if (!mongoObject['_rperm'] && !mongoObject['_wperm']) {
         return output;
@@ -306,13 +306,13 @@ function untransformACL(mongoObject) {
 }
 
 // Transforms a key used in the REST API format to its mongo format.
-function transformKey(schema, className, key) {
+export function transformKey(schema, className, key) {
     return transformKeyValue(schema, className, key, null, {validate: true}).key;
 }
 
 // A sentinel value that helper transformations return when they
 // cannot perform a transformation
-function CannotTransform() {}
+export function CannotTransform() {}
 
 // Helper function to transform an atom from REST format to Mongo format.
 // An atom is anything that can't contain other expressions. So it
@@ -324,7 +324,7 @@ function CannotTransform() {}
 // Raises an error if this cannot possibly be valid REST format.
 // Returns CannotTransform if it's just not an atom, or if force is
 // true, throws an error.
-function transformAtom(atom, force, options) {
+export function transformAtom(atom, force, options) {
     options = options || {};
     var inArray = options.inArray;
     var inObject = options.inObject;
@@ -396,7 +396,7 @@ function transformAtom(atom, force, options) {
 // If it is not a valid constraint but it could be a valid something
 // else, return CannotTransform.
 // inArray is whether this is an array field.
-function transformConstraint(constraint, inArray) {
+export function transformConstraint(constraint, inArray) {
     if (typeof constraint !== 'object' || !constraint) {
         return CannotTransform;
     }
@@ -524,7 +524,7 @@ function transformConstraint(constraint, inArray) {
 // The output for a flattened operator is just a value.
 // Returns CannotTransform if this cannot transform it.
 // Returns undefined if this should be a no-op.
-function transformUpdateOperator(operator, flatten) {
+export function transformUpdateOperator(operator, flatten) {
     if (typeof operator !== 'object' || !operator.__op) {
         return CannotTransform;
     }
@@ -591,7 +591,7 @@ function transformUpdateOperator(operator, flatten) {
 
 // Converts from a mongo-format object to a REST-format object.
 // Does not strip out anything based on a lack of authentication.
-function untransformObject(schema, className, mongoObject) {
+export function untransformObject(schema, className, mongoObject) {
     switch(typeof mongoObject) {
     case 'string':
     case 'number':
@@ -722,7 +722,7 @@ function untransformObject(schema, className, mongoObject) {
     }
 }
 
-module.exports = {
+export default {
     transformKey: transformKey,
     transformCreate: transformCreate,
     transformUpdate: transformUpdate,

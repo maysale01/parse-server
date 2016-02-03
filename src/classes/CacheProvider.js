@@ -3,8 +3,8 @@ class CacheProvider {
         this._cache = cache;
     }
 
-    registerApp(appId, app) {
-        this._cache.registerApp(appId, app);
+    registerApp(applicationId, app) {
+        this._cache.registerApp(applicationId, app);
     }
 
     set cache(value) {

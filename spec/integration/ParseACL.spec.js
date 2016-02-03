@@ -15,24 +15,20 @@ describe('Parse.ACL', () => {
   it("refresh object with acl", (done) => {
     // Create an object owned by Alice.
     var user = new Parse.User();
+    var object = new TestObject();
     user.set("username", "alice");
     user.set("password", "wonderland");
-    user.signUp(null, {
-      success: function() {
-        var object = new TestObject();
+    user.signUp()
+    .then(() => {
         var acl = new Parse.ACL(user);
         object.setACL(acl);
-        object.save(null, {
-          success: function() {
-            // Refreshing the object should succeed.
-            object.fetch({
-              success: function() {
-                done();
-              }
-            });
-          }
-        });
-      }
+        return object.save();
+    })
+    .then(() => {
+        return object.fetch();
+    })
+    .then(() => {
+        done();
     });
   });
 

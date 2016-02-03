@@ -1,10 +1,9 @@
 // analytics.js
-var Parse           = require('parse/node').Parse;
-var PromiseRouter   = require('../classes/PromiseRouter');
-var rest            = require('../utils/rest');
+import { Parse } from 'parse/node';
+import { PromiseRouter } from '../classes';
+import { rest} from '../utils';
 
-var router = new PromiseRouter();
-
+const router = new PromiseRouter();
 
 // Returns a promise that resolves to an empty object response
 function ignoreAndSucceed(req) {
@@ -16,4 +15,4 @@ function ignoreAndSucceed(req) {
 router.route('POST','/events/AppOpened', ignoreAndSucceed);
 router.route('POST','/events/:eventName', ignoreAndSucceed);
 
-module.exports = router;
+export default router;
