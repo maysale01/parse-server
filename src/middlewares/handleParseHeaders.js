@@ -79,11 +79,6 @@ export default function handleParseHeaders(req, res, next) {
         app: info.app, 
         mount: getMount(req)
     });
-    if (!req.config.database) {
-        console.log(cache.apps);
-        console.log(req.body);
-        throw new Error('Why not database');
-    }
     req.database = req.config.database;
     req.info = info;
 
