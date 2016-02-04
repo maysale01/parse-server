@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 export default class DatabaseAdapter {
     constructor() {
         // TODO: Add some param validation here?

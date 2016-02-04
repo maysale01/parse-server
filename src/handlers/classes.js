@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // These methods handle the 'classes' routes.
 // Methods of the form 'handleX' return promises and are intended to
 // be used with the PromiseRouter.
@@ -65,8 +68,8 @@ export async function handleDelete(req) {
 
 // Returns a promise for a {response} object.
 export async function handleUpdate(req) {
-    await rest.update(req.config, req.auth, req.params.className, req.params.objectId, req.body);
-    return {response: {}};
+    let response = await rest.update(req.config, req.auth, req.params.className, req.params.objectId, req.body);
+    return {response: response};
 }
 
 router.route('GET', '/classes/:className', handleFind);

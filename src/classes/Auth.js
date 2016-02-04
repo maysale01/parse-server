@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import deepcopy from 'deepcopy';
 import { Parse } from 'parse/node';
 import RestQuery from './RestQuery';

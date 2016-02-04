@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // Tools for encrypting and decrypting passwords.
 // Basically promise-friendly wrappers for bcrypt.
 import bcrypt from 'bcrypt-nodejs';

@@ -50,7 +50,6 @@ export default class RestClient {
                 try {
                     await triggers.maybeRunTrigger('beforeDelete', auth, inflatedObject);
                 } catch (error) {
-                    console.error('BeforeDelete threw an error, should abort the transaction..', error);
                     throw error;
                 }
             } else {

@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // S3Adapter
 //
 // Stores Parse files in AWS S3.

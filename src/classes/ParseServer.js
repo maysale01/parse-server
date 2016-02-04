@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { DatabaseProvider, FilesProvider, CacheProvider, MemoryCache } from './index';
 import { ExportAdapter as DEFAULT_DATABASE_ADAPTER, GridStoreAdapter as DEFAULT_FILES_ADAPTER } from '../adapters';
 import { default as ParseApp } from './ParseApp';

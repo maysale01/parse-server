@@ -1,4 +1,6 @@
-// sessions.js
+"use strict";
+require("babel-polyfill");
+
 import { Parse } from 'parse/node';
 import { Auth, PromiseRouter } from '../classes';
 import { rest } from '../utils';
@@ -37,7 +39,7 @@ export async function handleLogout(req) {
     }
     let response = await rest.find(req.config, Auth.master(req.config), '_Session', { _session_token: req.info.sessionToken});
     if (!response.results || response.results.length == 0) {
-        throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, 'Session token not found.');
+        throw new Parse.Error(Parse.Error.INVALID_SESSION_TOKEN, `Session token not found. Token: ${req.info.sessionToken}`);
     }
     await rest.del(req.config, Auth.master(req.config), '_Session', response.results[0].objectId, cache);
     return {

@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { default as CacheInterface } from '../interfaces/Cache';
 
 let instance = null;

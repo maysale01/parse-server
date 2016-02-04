@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { addParseCloud } from '../utils';
 
 class ParseApp {

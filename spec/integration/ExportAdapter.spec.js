@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { ExportAdapter } from '../../src/adapters';
 
 describe('ExportAdapter', () => {

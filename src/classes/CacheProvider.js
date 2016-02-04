@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 class CacheProvider {
     constructor(cache) {
         this._cache = cache;

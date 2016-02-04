@@ -1,3 +1,5 @@
+"use strict";
+require("babel-polyfill");
 // These tests check that the Schema operates correctly.
 
 import { Schema, Config } from '../../src/classes';

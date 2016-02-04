@@ -45,10 +45,6 @@ let testServer = testApp.listen(port);
 let Parse = require('parse/node');
 Parse.serverURL = 'http://localhost:' + port + '/1';
 
-// This is needed because we ported a bunch of tests from the non-A+ way.
-// TODO: update tests to work in an A+ way
-Parse.Promise.disableAPlusCompliant();
-
 beforeEach(function(done) {
   Parse.initialize('test', 'test', 'test');
   mockFacebook();
@@ -60,7 +56,7 @@ afterEach(function(done) {
   Parse.User.logOut();
   Parse.Promise.as()
   .then(() => {
-    //return clearData();
+    return clearData();
   }).then(() => {
     done();
   }, (error) => {

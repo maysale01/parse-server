@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // A RestWrite encapsulates everything we need to run an operation
 // that writes to the database.
 // This could be either a "create" or an "update".
@@ -166,8 +169,6 @@ class RestWrite {
     // Validates this operation against the schema.
     validateSchema() {
         if (!this.config.database) {
-            console.log(this.config);
-            console.log(this.config._app);
             throw new Error('Database must be defined on the config!');
         }
         return this.config.database.validateObject(this.className, this.data);

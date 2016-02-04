@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // A router that is based on promises rather than req/res/next.
 // This is intended to replace the use of express.Router to handle
 // subsections of the API surface.
@@ -164,10 +167,9 @@ export function makeExpressHandler(promiseHandler) {
             if (result.location) {
                 res.set('Location', result.location);
             }
-            console.log(result.response);
             res.json(result.response);
         } catch (e) {
-            console.error(`PromiseRouter: ${e.message}`, e.stack);
+            //console.error(`PromiseRouter: ${e.message}`, e.stack);
             next(e);
         }
     };

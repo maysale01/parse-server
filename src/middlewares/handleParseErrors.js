@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { Parse } from 'parse/node';
 
 export default function handleParseErrors(err, req, res, next) {

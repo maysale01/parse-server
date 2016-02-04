@@ -1,4 +1,5 @@
-
+"use strict";
+require("babel-polyfill");
 
 // Roles are not accessible without the master key, so they are not intended
 // for use by clients.  We can manually test them using the master key.

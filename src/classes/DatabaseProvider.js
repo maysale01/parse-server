@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 const DEFAULT_DATABASE_URI = process.env.DEFAULT_DATABASE_URI || 'mongodb://localhost:27017/parse';
 
 class DatabaseProvider {

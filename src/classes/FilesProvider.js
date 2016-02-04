@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 export default class FilesProvider {
     constructor(adapter) {
         if (typeof adapter === 'function') {

@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // A Config object provides information about how a specific app is
 // configured.
 // mount is the URL for the root of the API; includes http, domain, etc.

@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // A database adapter that works with data exported from the hosted
 // Parse database.
 

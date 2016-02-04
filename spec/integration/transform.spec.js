@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // These tests are unit tests designed to only test transform.js.
 import {
     transform

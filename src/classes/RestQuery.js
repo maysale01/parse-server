@@ -1,7 +1,6 @@
 "use strict";
 require("babel-polyfill");
 
-
 // An object that encapsulates everything we need to run a 'find'
 // operation, encoded in the REST API format.
 

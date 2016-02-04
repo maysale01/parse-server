@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // Helper functions for accessing the Facebook Graph API.
 import https from 'https';
 import { Parse } from 'parse/node';

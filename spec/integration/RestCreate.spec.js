@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // These tests check the "create" functionality of the REST API.
 
 import request from 'request';

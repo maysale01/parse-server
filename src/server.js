@@ -41,7 +41,7 @@ export function initParseServer(args = {}) {
         Server: server
     });
 
-    app.use(morgan(':req[header] :method :url'));
+//    app.use(morgan('dev'));
 
     // File handling needs to be before default middlewares are applied
     app.use('/', handlers.files);
@@ -53,15 +53,14 @@ export function initParseServer(args = {}) {
     }
 
     app.use(bodyParser.json({ 'type': '*/*' }));
-
-    app.use(function(req, res, next) {
-        //console.log(req.body);
-        next();
-    });
-
     app.use(middlewares.allowCrossDomain);
     app.use(middlewares.allowMethodOverride);
     app.use(middlewares.handleParseHeaders);
+
+    // app.use('/', function(req, res, next) {
+    //     console.log(req.body);
+    //     next();
+    // });
 
     router.merge(handlers['classes']);
     router.merge(handlers['users']);

@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // This is a port of the test suite:
 // hungry/js/test/parse_query_test.js
 //

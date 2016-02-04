@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // This class handles schema validation, persistence, and modification.
 //
 // Each individual Schema object should be immutable. The helpers to

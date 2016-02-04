@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 import { Parse } from 'parse/node';
 import mongodb from 'mongodb';
 

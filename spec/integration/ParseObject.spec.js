@@ -1,3 +1,7 @@
+"use strict";
+require("babel-polyfill");
+
+
 // This is a port of the test suite:
 // hungry/js/test/parse_object_test.js
 //
@@ -10,30 +14,26 @@
 // Tests for unfetching, since that behaves differently in
 // single-instance mode and we don't want these tests to run in
 // single-instance mode.
+import { Parse } from 'parse/node';
 
 describe('Parse.Object testing', () => {
-  xit("create", function(done) {
-    create({ "test" : "test" }, function(model, response) {
-      ok(model.id, "Should have an objectId set");
-      equal(model.get("test"), "test", "Should have the right attribute");
-      done();
-    });
+  it("create", async function(done) {
+    let model = await (new TestObject({ "test" : "test" })).save();
+    ok(model.id, "Should have an objectId set");
+    equal(model.get("test"), "test", "Should have the right attribute");
+    done();
   });
 
-  xit("update", function(done) {
-    create({ "test" : "test" }, function(model, response) {
-      var t2 = new TestObject({ objectId: model.id });
-      t2.set("test", "changed");
-      t2.save(null, {
-        success: function(model, response) {
-          equal(model.get("test"), "changed", "Update should have succeeded");
-          done();
-        }
-      });
-    });
+  it("update", async function(done) {
+    let model = await (new TestObject({ "test" : "test" })).save();
+    let model2 = new TestObject({ objectId: model.id });
+    model2.set('test', 'changed');
+    model2 = await model2.save();
+    equal(model2.get("test"), "changed", "Update should have succeeded");
+    done();
   });
 
-  xit("save without null", function(done) {
+  it("save without null", function(done) {
     var object = new TestObject();
     object.set("favoritePony", "Rainbow Dash");
     object.save({
@@ -48,7 +48,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("save cycle", function(done) {
+  it("save cycle", function(done) {
     var a = new Parse.Object("TestObject");
     var b = new Parse.Object("TestObject");
     a.set("b", b);
@@ -70,7 +70,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("get", function(done) {
+  it("get", function(done) {
     create({ "test" : "test" }, function(model, response) {
       var t2 = new TestObject({ objectId: model.id });
       t2.fetch({
@@ -84,7 +84,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("delete", function(done) {
+  it("delete", function(done) {
     var t = new TestObject();
     t.set("test", "test");
     t.save(null, {
@@ -99,7 +99,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("find", function(done) {
+  it("find", function(done) {
     var t = new TestObject();
     t.set("foo", "bar");
     t.save(null, {
@@ -116,7 +116,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("relational fields", function(done) {
+  it("relational fields", function(done) {
     var item = new Item();
     item.set("property", "x");
     var container = new Container();
@@ -142,8 +142,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("save adds no data keys (other than createdAt and updatedAt)",
-     function(done) {
+  it("save adds no data keys (other than createdAt and updatedAt)", function(done) {
        var object = new TestObject();
        object.save(null, {
          success: function() {
@@ -154,7 +153,7 @@ describe('Parse.Object testing', () => {
        });
      });
 
-  xit("recursive save", function(done) {
+  it("recursive save", function(done) {
     var item = new Item();
     item.set("property", "x");
     var container = new Container();
@@ -180,7 +179,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetch", function(done) {
+  it("fetch", function(done) {
     var item = new Item({ foo: "bar" });
     item.save(null, {
       success: function() {
@@ -204,7 +203,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("createdAt doesn't change", function(done) {
+  it("createdAt doesn't change", function(done) {
     var object = new TestObject({ foo: "bar" });
     object.save(null, {
       success: function() {
@@ -220,7 +219,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("createdAt and updatedAt exposed", function(done) {
+  it("createdAt and updatedAt exposed", function(done) {
     var object = new TestObject({ foo: "bar" });
     object.save(null, {
       success: function() {
@@ -231,7 +230,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("updatedAt gets updated", function(done) {
+  it("updatedAt gets updated", function(done) {
     var object = new TestObject({ foo: "bar" });
     object.save(null, {
       success: function() {
@@ -248,7 +247,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("createdAt is reasonable", function(done) {
+  it("createdAt is reasonable", function(done) {
     var startTime = new Date();
     var object = new TestObject({ foo: "bar" });
     object.save(null, {
@@ -267,7 +266,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("can set null", function(done) {
+  it("can set null", function(done) {
     var obj = new Parse.Object("TestObject");
     obj.set("foo", null);
     obj.save(null, {
@@ -282,7 +281,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("can set boolean", function(done) {
+  it("can set boolean", function(done) {
     var obj = new Parse.Object("TestObject");
     obj.set("yes", true);
     obj.set("no", false);
@@ -299,21 +298,19 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit('cannot set invalid date', function(done) {
-    var obj = new Parse.Object('TestObject');
+  it('cannot set invalid date', async function(done) {
+    let obj = new Parse.Object('TestObject');
     obj.set('when', new Date(Date.parse(null)));
     try {
-      obj.save();
-    } catch (e) {
-      ok(true);
-      done();
-      return;
+        await obj.save();
+        fail('Saving an invalid date should throw');
+    } 
+    catch (e) {
+        done();
     }
-    ok(false, 'Saving an invalid date should throw');
-    done();
   });
 
-  xit("invalid class name", function(done) {
+  it("invalid class name", function(done) {
     var item = new Parse.Object("Foo^bar");
     item.save(null, {
       success: function(item) {
@@ -329,14 +326,14 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("invalid key name", function(done) {
+  it("invalid key name", function(done) {
     var item = new Parse.Object("Item");
     ok(!item.set({"foo^bar": "baz"}),
        'Item should not be updated with invalid key.');
     item.save({ "foo^bar": "baz" }).then(fail, done);
   });
 
-  xit("simple field deletion", function(done) {
+  it("simple field deletion", function(done) {
     var simple = new Parse.Object("SimpleObject");
     simple.save({
       foo: "bar"
@@ -377,7 +374,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("field deletion before first save", function(done) {
+  it("field deletion before first save", function(done) {
     var simple = new Parse.Object("SimpleObject");
     simple.set("foo", "bar");
     simple.unset("foo");
@@ -410,7 +407,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("relation deletion", function(done) {
+  it("relation deletion", function(done) {
     var simple = new Parse.Object("SimpleObject");
     var child = new Parse.Object("Child");
     simple.save({
@@ -452,7 +449,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("deleted keys get cleared", function(done) {
+  it("deleted keys get cleared", function(done) {
     var simpleObject = new Parse.Object("SimpleObject");
     simpleObject.set("foo", "bar");
     simpleObject.unset("foo");
@@ -486,7 +483,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("setting after deleting", function(done) {
+  it("setting after deleting", function(done) {
     var simpleObject = new Parse.Object("SimpleObject");
     simpleObject.set("foo", "bar");
     simpleObject.save(null, {
@@ -520,34 +517,36 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  it("increment", async function(done) {
-    try {
-        let simple = new Parse.Object("SimpleObject");
-        // Set foo to 5
-        simple = await simple.save({ foo: 5 });
-        // Increment foo to 6
+  it("increment", function(done) {
+    var simple = new Parse.Object("SimpleObject");
+    simple.save({
+      foo: 5
+    }, {
+      success: function(simple) {
         simple.increment("foo");
         equal(simple.get("foo"), 6);
         ok(simple.dirty("foo"), "foo should be dirty.");
         ok(simple.dirty(), "the whole object should be dirty.");
+        simple.save(null, {
+          success: function(simple) {
+            equal(simple.get("foo"), 6);
+            ok(!simple.dirty("foo"), "the whole object was just saved.");
+            ok(!simple.dirty(), "the whole object was just saved.");
 
-        console.log('before save', simple.get("foo"));
-        // Save 
-        let x  = await simple.save();
-        console.log('after save', simple.toJSON());
-        console.log('after save', x.toJSON());
-        equal(simple.get("foo"), 6);
-        ok(!simple.dirty("foo"), "the whole object was just saved.");
-        ok(!simple.dirty(), "the whole object was just saved.");
-        let simpleAgain = await (new Parse.Query("SimpleObject")).get(simple.id);
-        equal(simpleAgain.get("foo"), 6);
-        done();
-    } catch (error) {
-        fail(error);
-    }
+            var query = new Parse.Query("SimpleObject");
+            query.get(simple.id, {
+              success: function(simpleAgain) {
+                equal(simpleAgain.get("foo"), 6);
+                done();
+              }
+            });
+          }
+        });
+      }
+    });
   });
 
-  xit("addUnique", function(done) {
+  it("addUnique", function(done) {
     var x1 = new Parse.Object('X');
     x1.set('stuff', [1, 2]);
     x1.save().then(() => {
@@ -569,7 +568,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("dirty attributes", function(done) {
+  it("dirty attributes", function(done) {
     var object = new Parse.Object("TestObject");
     object.set("cat", "good");
     object.set("dog", "bad");
@@ -594,7 +593,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("dirty keys", function(done) {
+  it("dirty keys", function(done) {
     var object = new Parse.Object("TestObject");
     object.set("gogo", "good");
     object.set("sito", "sexy");
@@ -633,7 +632,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("length attribute", function(done) {
+  it("length attribute", function(done) {
     Parse.User.signUp("bob", "password", null, {
       success: function(user) {
         var TestObject = Parse.Object.extend("TestObject");
@@ -689,7 +688,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("old attribute unset then unset", function(done) {
+  it("old attribute unset then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 3);
@@ -715,7 +714,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("new attribute unset then unset", function(done) {
+  it("new attribute unset then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 5);
@@ -737,7 +736,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("unknown attribute unset then unset", function(done) {
+  it("unknown attribute unset then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.unset("x");
@@ -758,7 +757,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("old attribute unset then clear", function(done) {
+  it("old attribute unset then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 3);
@@ -784,7 +783,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("new attribute unset then clear", function(done) {
+  it("new attribute unset then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 5);
@@ -806,7 +805,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("unknown attribute unset then clear", function(done) {
+  it("unknown attribute unset then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.unset("x");
@@ -827,7 +826,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("old attribute clear then unset", function(done) {
+  it("old attribute clear then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 3);
@@ -853,7 +852,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("new attribute clear then unset", function(done) {
+  it("new attribute clear then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 5);
@@ -875,7 +874,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("unknown attribute clear then unset", function(done) {
+  it("unknown attribute clear then unset", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.clear();
@@ -896,7 +895,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("old attribute clear then clear", function(done) {
+  it("old attribute clear then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 3);
@@ -922,7 +921,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("new attribute clear then clear", function(done) {
+  it("new attribute clear then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.set("x", 5);
@@ -944,7 +943,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("unknown attribute clear then clear", function(done) {
+  it("unknown attribute clear then clear", function(done) {
     var TestObject = Parse.Object.extend("TestObject");
     var obj = new TestObject();
     obj.clear();
@@ -965,7 +964,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("saving children in an array", function(done) {
+  it("saving children in an array", function(done) {
     var Parent = Parse.Object.extend("Parent");
     var Child = Parse.Object.extend("Child");
 
@@ -997,7 +996,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("two saves at the same time", function(done) {
+  it("two saves at the same time", function(done) {
 
     var object = new Parse.Object("TestObject");
     var firstSave = true;
@@ -1030,7 +1029,7 @@ describe('Parse.Object testing', () => {
   // typed field and saved okay, since that appears to be borked in
   // the client.
   // If this fails, it's probably a schema issue.
-  xit('many saves after a failure', function(done) {
+  it('many saves after a failure', function(done) {
     // Make a class with a number in the schema.
     var o1 = new Parse.Object('TestObject');
     o1.set('number', 1);
@@ -1056,7 +1055,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("is not dirty after save", function(done) {
+  it("is not dirty after save", function(done) {
     var obj = new Parse.Object("TestObject");
     obj.save(expectSuccess({
       success: function() {
@@ -1071,7 +1070,7 @@ describe('Parse.Object testing', () => {
     }));
   });
 
-  xit("add with an object", function(done) {
+  it("add with an object", function(done) {
     var child = new Parse.Object("Person");
     var parent = new Parse.Object("Person");
 
@@ -1097,7 +1096,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("toJSON saved object", function(done) {
+  it("toJSON saved object", function(done) {
     var _ = Parse._;
     create({ "foo" : "bar" }, function(model, response) {
       var objJSON = model.toJSON();
@@ -1109,7 +1108,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("remove object from array", function(done) {
+  it("remove object from array", function(done) {
     var obj = new TestObject();
     obj.save(null, expectSuccess({
       success: function() {
@@ -1129,7 +1128,7 @@ describe('Parse.Object testing', () => {
     }));
   });
 
-  xit("async methods", function(done) {
+  it("async methods", function(done) {
     var obj = new TestObject();
     obj.set("time", "adventure");
 
@@ -1156,7 +1155,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fail validation with promise", function(done) {
+  it("fail validation with promise", function(done) {
     var PickyEater = Parse.Object.extend("PickyEater", {
       validate: function(attrs) {
         if (attrs.meal === "tomatoes") {
@@ -1183,7 +1182,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("beforeSave doesn't make object dirty with new field", function(done) {
+  it("beforeSave doesn't make object dirty with new field", function(done) {
     var restController = Parse.CoreManager.getRESTController();
     var r = restController.request;
     restController.request = function() {
@@ -1204,7 +1203,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("beforeSave doesn't make object dirty with existing field", function(done) {
+  it("beforeSave doesn't make object dirty with existing field", async function(done) {
     var restController = Parse.CoreManager.getRESTController();
     var r = restController.request;
     restController.request = function() {
@@ -1215,22 +1214,16 @@ describe('Parse.Object testing', () => {
     };
 
     var now = new Date();
-
     var obj = new Parse.Object("Thing");
-    var promise = obj.save();
+    let savedObj = await obj.save();
     obj.set('aDate', now);
-
-    promise.then(function() {
-      ok(obj.dirty(), "The object should be dirty");
-      equal(now, obj.get('aDate'));
-
-    }).always(function() {
-      restController.request = r;
-      done();
-    });
+    ok(obj.dirty(), "The object should be dirty");
+    equal(now, obj.get('aDate'));
+    done();
+    restController.request = r;
   });
 
-  xit("bytes work", function(done) {
+  it("bytes work", function(done) {
     Parse.Promise.as().then(function() {
       var obj = new TestObject();
       obj.set("bytes", { __type: "Bytes", base64: "ZnJveW8=" });
@@ -1252,14 +1245,14 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("destroyAll no objects", function(done) {
+  it("destroyAll no objects", function(done) {
     Parse.Object.destroyAll([], function(success, error) {
       ok(success && !error, "Should be able to destroy no objects");
       done();
     });
   });
 
-  xit("destroyAll new objects only", function(done) {
+  it("destroyAll new objects only", function(done) {
 
     var objects = [new TestObject(), new TestObject()];
     Parse.Object.destroyAll(objects, function(success, error) {
@@ -1268,7 +1261,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAll", function(done) {
+  it("fetchAll", function(done) {
     var numItems = 11;
     var container = new Container();
     var items = [];
@@ -1308,14 +1301,14 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAll no objects", function(done) {
+  it("fetchAll no objects", function(done) {
     Parse.Object.fetchAll([], function(success, error) {
       ok(success && !error, "Should be able to fetchAll no objects");
       done();
     });
   });
 
-  xit("fetchAll updates dates", function(done) {
+  it("fetchAll updates dates", function(done) {
     var updatedObject;
     var object = new TestObject();
     object.set("x", 7);
@@ -1335,7 +1328,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAll backbone-style callbacks", function(done) {
+  it("fetchAll backbone-style callbacks", function(done) {
     var numItems = 11;
     var container = new Container();
     var items = [];
@@ -1381,7 +1374,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAll error on multiple classes", function(done) {
+  it("fetchAll error on multiple classes", function(done) {
     var container = new Container();
     container.set("item", new Item());
     container.set("subcontainer", new Container());
@@ -1398,13 +1391,13 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAll error on unsaved object", function(done) {
+  it("fetchAll error on unsaved object", function(done) {
     var unsavedObjectArray = [new TestObject()];
     Parse.Object.fetchAll(unsavedObjectArray,
                           expectError(Parse.Error.MISSING_OBJECT_ID, done));
   });
 
-  xit("fetchAll error on deleted object", function(done) {
+  it("fetchAll error on deleted object", function(done) {
     var numItems = 11;
     var container = new Container();
     var subContainer = new Container();
@@ -1462,7 +1455,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAllIfNeeded", function(done) {
+  it("fetchAllIfNeeded", function(done) {
     var numItems = 11;
     var container = new Container();
     var items = [];
@@ -1500,7 +1493,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAllIfNeeded backbone-style callbacks", function(done) {
+  it("fetchAllIfNeeded backbone-style callbacks", function(done) {
     var numItems = 11;
     var container = new Container();
     var items = [];
@@ -1546,21 +1539,21 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("fetchAllIfNeeded no objects", function(done) {
+  it("fetchAllIfNeeded no objects", function(done) {
     Parse.Object.fetchAllIfNeeded([], function(success, error) {
       ok(success && !error, "Should be able to fetchAll no objects");
       done();
     });
   });
 
-  xit("fetchAllIfNeeded unsaved object", function(done) {
+  it("fetchAllIfNeeded unsaved object", function(done) {
     var unsavedObjectArray = [new TestObject()];
     Parse.Object.fetchAllIfNeeded(
       unsavedObjectArray,
       expectError(Parse.Error.MISSING_OBJECT_ID, done));
   });
 
-  xit("fetchAllIfNeeded error on multiple classes", function(done) {
+  it("fetchAllIfNeeded error on multiple classes", function(done) {
     var container = new Container();
     container.set("item", new Item());
     container.set("subcontainer", new Container());
@@ -1577,7 +1570,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("Objects with className User", function(done) {
+  it("Objects with className User", function(done) {
     equal(Parse.CoreManager.get('PERFORM_USER_REWRITE'), true);
     var User1 = Parse.Object.extend({
       className: "User"
@@ -1620,7 +1613,7 @@ describe('Parse.Object testing', () => {
     }));
   });
 
-  xit("create without data", function(done) {
+  it("create without data", function(done) {
     var t1 = new TestObject({ "test" : "test" });
     t1.save().then(function(t1) {
       var t2 = TestObject.createWithoutData(t1.id);
@@ -1641,7 +1634,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("remove from new field creates array key", (done) => {
+  it("remove from new field creates array key", (done) => {
     var obj = new TestObject();
     obj.remove('shouldBeArray', 'foo');
     obj.save().then(() => {
@@ -1655,7 +1648,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("increment with type conflict fails", (done) => {
+  it("increment with type conflict fails", (done) => {
     var obj = new TestObject();
     obj.set('astring', 'foo');
     obj.save().then(() => {
@@ -1671,7 +1664,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("increment with empty field solidifies type", (done) => {
+  it("increment with empty field solidifies type", (done) => {
     var obj = new TestObject();
     obj.increment('aninc');
     obj.save().then(() => {
@@ -1687,7 +1680,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit("increment update with type conflict fails", (done) => {
+  it("increment update with type conflict fails", (done) => {
     var obj = new TestObject();
     obj.set('someString', 'foo');
     obj.save().then((objAgain) => {
@@ -1704,7 +1697,7 @@ describe('Parse.Object testing', () => {
     });
   });
 
-  xit('dictionary fetched pointers do not lose data on fetch', (done) => {
+  it('dictionary fetched pointers do not lose data on fetch', (done) => {
     var parent = new Parse.Object('Parent');
     var dict = {};
     for (var i = 0; i < 5; i++) {

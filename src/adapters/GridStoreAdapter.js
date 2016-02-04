@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // GridStoreAdapter
 //
 // Stores files in Mongo using GridStore

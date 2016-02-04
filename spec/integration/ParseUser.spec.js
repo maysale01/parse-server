@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // This is a port of the test suite:
 // hungry/js/test/parse_user_test.js
 //
@@ -5,42 +8,46 @@
 // Tests that involve revocable sessions.
 // Tests that involve sending password reset emails.
 
-var request             = require('request');
-var path = require('path');
-var passwordCrypto      = require(path.resolve('src/utils/password'));
+import request from 'request';
+import fetch from 'node-fetch';
+import { password as passwordCrypto } from '../../src/utils';
 
 describe('Parse.User testing', () => {
-  it("user sign up class method", (done) => {
-    Parse.User.signUp("asdf", "zxcv", null, {
-      success: function(user) {
-        ok(user.getSessionToken());
-        done();
-      }
-    });
+
+  it("user sign up class method", async (done) => {
+    let user = await Parse.User.signUp("asdf", "zxcv");
+    ok(user.getSessionToken());
+    done();
   });
 
-  it("user sign up instance method", (done) => {
-    var user = new Parse.User();
-    user.setPassword("asdf");
-    user.setUsername("zxcv");
-    user.signUp(null, {
-      success: function(user) {
+  it("user sign up instance method", async (done) => {
+    try {
+        let user = new Parse.User();
+        user.setPassword("asdf");
+        user.setUsername("zxcv");
+        user = await user.signUp();
         ok(user.getSessionToken());
         done();
-      },
-      error: function(userAgain, error) {
-        ok(undefined, error);
-      }
-    });
+    } 
+    catch (error) {
+        fail(error);
+    }
   });
 
-  it("user login wrong username", (done) => {
-    Parse.User.signUp("asdf", "zxcv", null, {
-      success: function(user) {
-        Parse.User.logIn("non_existent_user", "asdf3",
-                         expectError(Parse.Error.OBJECT_NOT_FOUND, done));
-      }
-    });
+  it("user login wrong username", async (done) => {
+    try {
+        let user = await Parse.User.signUp("asdf", "zxcv");
+        await Parse.User.logIn("non_existent_user", "asdf3");
+        fail('Expected an error but login succeeded.');
+    } 
+    catch (error) {
+        if (error instanceof Parse.Error) {
+            expect(error.code).toEqual(Parse.Error.OBJECT_NOT_FOUND, error.message);
+            done();
+        } else {
+            fail('Expected error to be an instance of Parse.Error.');
+        }
+    }
   });
 
   it("user login wrong password", (done) => {
@@ -52,65 +59,56 @@ describe('Parse.User testing', () => {
     });
   });
 
-  it("user login", (done) => {
-    Parse.User.signUp("asdf", "zxcv", null, {
-      success: function(user) {
-        Parse.User.logIn("asdf", "zxcv", {
-          success: function(user) {
-            equal(user.get("username"), "asdf");
-            done();
-          }
-        });
-      }
-    });
+  it("user login", async (done) => {
+    let user = await Parse.User.signUp("asdf", "zxcv");
+    user = await Parse.User.logIn("asdf", "zxcv");
+    equal(user.get("username"), "asdf");
+    done();
+  });
+    
+
+  it("logout", async (done) => {
+    let newUser = await Parse.User.signUp("Jason", "Parse", { "code": "red" });
+    equal(await Parse.User.current(), newUser);
+    await Parse.User.logOut();
+    equal(await Parse.User.current(), null);
+
+    done();
   });
 
-  it("become", (done) => {
-    var user = null;
-    var sessionToken = null;
+  it("become", async (done) => {
+    try {
+        let originalSessionToken;
+        let me;
+        let user1 = await Parse.User.signUp("Jason", "Parse", { "code": "red" });
+        let user2 = await Parse.User.signUp("Alex", "Parse", { "code": "blue" });
+        originalSessionToken = user1.getSessionToken();
 
-    Parse.Promise.as().then(function() {
-      return Parse.User.signUp("Jason", "Parse", { "code": "red" });
+        ok(originalSessionToken);
+        // Check that we're user2
+        me = await Parse.User.current();
+        equal(me.id, user2.id);
 
-    }).then(function(newUser) {
-      equal(Parse.User.current(), newUser);
+        // Switch to user1
+        await Parse.User.become(originalSessionToken);
 
-      user = newUser;
-      sessionToken = newUser.getSessionToken();
-      ok(sessionToken);
+        // Check that we're user1
+        me = await Parse.User.current();
+        equal(me.id, user1.id);
+    } catch (e) {
+        fail(e.message);
+    }
 
-      Parse.User.logOut();
-      ok(!Parse.User.current());
-
-      return Parse.User.become(sessionToken);
-
-    }).then(function(newUser) {
-      equal(Parse.User.current(), newUser);
-
-      ok(newUser);
-      equal(newUser.id, user.id);
-      equal(newUser.get("username"), "Jason");
-      equal(newUser.get("code"), "red");
-
-      Parse.User.logOut();
-      ok(!Parse.User.current());
-
-      return Parse.User.become("somegarbage");
-
-    }).then(function() {
-      // This should have failed actually.
-      ok(false, "Shouldn't have been able to log in with garbage session token.");
-    }, function(error) {
-      ok(error);
-      // Handle the error.
-      return Parse.Promise.as();
-
-    }).then(function() {
-      done();
-    }, function(error) {
-      ok(false, error);
-      done();
-    });
+    try {
+        await Parse.User.become("invalidsessiontoken");
+        fail("Shouldn't have been able to log in with garbage session token.")
+    } catch (error) {
+        if (error instanceof Parse.Error) {
+            done();
+        } else {
+            fail('Expected error to be an instance of Parse.Error.');
+        }
+    }
   });
 
   it("cannot save non-authed user", (done) => {
@@ -232,124 +230,101 @@ describe('Parse.User testing', () => {
     });
   });
 
-  it("current user", (done) => {
+  it("current user", async (done) => {
     var user = new Parse.User();
     user.set("password", "asdf");
     user.set("email", "asdf@example.com");
     user.set("username", "zxcv");
-    user.signUp(null, {
-      success: function() {
-        var currentUser = Parse.User.current();
-        equal(user.id, currentUser.id);
-        ok(user.getSessionToken());
 
-        var currentUserAgain = Parse.User.current();
-        // should be the same object
-        equal(currentUser, currentUserAgain);
+    await user.signUp();
+    let currentUser = await Parse.User.current();
+    equal(user.id, currentUser.id);
+    ok(user.getSessionToken());
 
-        // test logging out the current user
-        Parse.User.logOut();
+    let currentUserAgain = await Parse.User.current();
+    equal(currentUser, currentUserAgain);
 
-        equal(Parse.User.current(), null);
-        done();
-      }
-    });
+    await Parse.User.logOut();
+    equal(await Parse.User.current(), null);
+    done();
   });
 
-  it("user.isCurrent", (done) => {
-    var user1 = new Parse.User();
-    var user2 = new Parse.User();
-    var user3 = new Parse.User();
+  it("user.isCurrent", async (done) => {
+    try {
+        let user1 = new Parse.User();
+        let user2 = new Parse.User();
+        let user3 = new Parse.User();
 
-    user1.set("username", "a");
-    user2.set("username", "b");
-    user3.set("username", "c");
+        user1.set("username", "a");
+        user2.set("username", "b");
+        user3.set("username", "c");
 
-    user1.set("password", "password");
-    user2.set("password", "password");
-    user3.set("password", "password");
+        user1.set("password", "password");
+        user2.set("password", "password");
+        user3.set("password", "password");
 
-    user1.signUp(null, {
-      success: function () {
+        await user1.signUp();
         equal(user1.isCurrent(), true);
         equal(user2.isCurrent(), false);
         equal(user3.isCurrent(), false);
-        user2.signUp(null, {
-          success: function() {
-            equal(user1.isCurrent(), false);
-            equal(user2.isCurrent(), true);
-            equal(user3.isCurrent(), false);
-            user3.signUp(null, {
-              success: function() {
-                equal(user1.isCurrent(), false);
-                equal(user2.isCurrent(), false);
-                equal(user3.isCurrent(), true);
-                Parse.User.logIn("a", "password", {
-                  success: function(user1) {
-                    equal(user1.isCurrent(), true);
-                    equal(user2.isCurrent(), false);
-                    equal(user3.isCurrent(), false);
-                    Parse.User.logIn("b", "password", {
-                      success: function(user2) {
-                        equal(user1.isCurrent(), false);
-                        equal(user2.isCurrent(), true);
-                        equal(user3.isCurrent(), false);
-                        Parse.User.logIn("b", "password", {
-                          success: function(user3) {
-                            equal(user1.isCurrent(), false);
-                            equal(user2.isCurrent(), true);
-                            equal(user3.isCurrent(), true);
-                            Parse.User.logOut();
-                            equal(user3.isCurrent(), false);
-                            done();
-                          }
-                        });
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+
+        await user2.signUp();
+        equal(user1.isCurrent(), false);
+        equal(user2.isCurrent(), true);
+        equal(user3.isCurrent(), false);
+
+        await user3.signUp();
+        equal(user1.isCurrent(), false);
+        equal(user2.isCurrent(), false);
+        equal(user3.isCurrent(), true);
+
+        await Parse.User.logIn("a", "password");
+        equal(user1.isCurrent(), true);
+        equal(user2.isCurrent(), false);
+        equal(user3.isCurrent(), false);
+
+        await Parse.User.logIn("b", "password");
+        equal(user1.isCurrent(), false);
+        equal(user2.isCurrent(), true);
+        equal(user3.isCurrent(), false);
+
+        await Parse.User.logIn("c", "password");
+        equal(user1.isCurrent(), false);
+        equal(user2.isCurrent(), false);
+        equal(user3.isCurrent(), true);
+
+        await Parse.User.logOut();
+        equal(user1.isCurrent(), false);
+        equal(user2.isCurrent(), false);
+        equal(user3.isCurrent(), false);
+        done();
+    } catch (error) {
+        fail(error);
+    }
   });
 
-  it("user associations", (done) => {
-    var child = new TestObject();
-    child.save(null, {
-      success: function() {
-        var user = new Parse.User();
-        user.set("password", "asdf");
-        user.set("email", "asdf@example.com");
-        user.set("username", "zxcv");
-        user.set("child", child);
-        user.signUp(null, {
-          success: function() {
-            var object = new TestObject();
-            object.set("user", user);
-            object.save(null, {
-              success: function() {
-                var query = new Parse.Query(TestObject);
-                query.get(object.id, {
-                  success: function(objectAgain) {
-                    var userAgain = objectAgain.get("user");
-                    userAgain.fetch({
-                      success: function() {
-                        equal(user.id, userAgain.id);
-                        equal(userAgain.get("child").id, child.id);
-                        done();
-                      }
-                    });
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+  it("user associations", async (done) => {
+    let child = new TestObject();
+    await child.save();
+    let user = new Parse.User();
+
+    user.set("password", "asdf");
+    user.set("email", "asdf@example.com");
+    user.set("username", "zxcv");
+    user.set("child", child);
+
+    await user.signUp();
+
+    let object = new TestObject();
+    object.set("user", user);
+    await object.save();
+    let objectAgain = await (new Parse.Query(TestObject)).get(object.id);
+    let userAgain = objectAgain.get("user");
+
+    await userAgain.fetch();
+    equal(user.id, userAgain.id);
+    equal(userAgain.get("child").id, child.id);
+    done();
   });
 
   it("user queries", (done) => {
@@ -515,27 +490,29 @@ describe('Parse.User testing', () => {
     });
   });
 
-  it("user modified while saving", (done) => {
+  it("user modified while saving", async (done) => {
     Parse.Object.disableSingleInstance();
-    var user = new Parse.User();
-    user.set("username", "alice");
-    user.set("password", "password");
-    user.signUp(null, {
-      success: function(userAgain) {
+    try {
+        var user = new Parse.User();
+        user.set("username", "alice");
+        user.set("password", "password");
+
+        setTimeout(() => {
+            ok(user.set("username", "bob"));
+        }, 5);
+        
+        let userAgain = await user.signUp()
         equal(userAgain.get("username"), "bob");
         ok(userAgain.dirty("username"));
-        var query = new Parse.Query(Parse.User);
-        query.get(user.id, {
-          success: function(freshUser) {
-            equal(freshUser.id, user.id);
-            equal(freshUser.get("username"), "alice");
-            Parse.Object.enableSingleInstance();
-            done();
-          }
-        });
-      }
-    });
-    ok(user.set("username", "bob"));
+        let freshUser = await (new Parse.Query(Parse.User)).get(user.id)
+        equal(freshUser.id, user.id);
+        equal(freshUser.get("username"), "alice");
+        Parse.Object.enableSingleInstance();
+        done();
+    }
+    catch (error) {
+        fail(error);
+    }
   });
 
   it("user modified while saving with unsaved child", (done) => {

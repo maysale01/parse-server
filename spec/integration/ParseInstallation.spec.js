@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // These tests check the Installations functionality of the REST API.
 // Ported from installation_collection_test.go
 
