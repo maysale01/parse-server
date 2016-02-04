@@ -131,7 +131,8 @@ function addParseCloud() {
     beforeSave: {},
     beforeDelete: {},
     afterSave: {},
-    afterDelete: {}
+    afterDelete: {},
+    requestPasswordReset: {}
   };
   Parse.Cloud.define = function(functionName, handler) {
     Parse.Cloud.Functions[functionName] = handler;
@@ -152,6 +153,9 @@ function addParseCloud() {
     var className = getClassName(parseClass);
     Parse.Cloud.Triggers.afterDelete[className] = handler;
   };
+  Parse.Cloud.requestPasswordReset = function(handler) {
+    Parse.Cloud.Triggers.requestPasswordReset = handler;
+  }
   Parse.Cloud.httpRequest = httpRequest;
   global.Parse = Parse;
 }

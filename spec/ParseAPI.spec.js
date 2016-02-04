@@ -152,6 +152,14 @@ describe('miscellaneous', function() {
     });
   });
 
+  it('test resetPasswordRequest trigger', function(done) {
+    Parse._request('POST', 'requestPasswordReset', { email: "user@test.com" })
+    .then((res) => {
+        ok(res);
+        done();
+    });
+  });
+
   it('basic beforeSave rejection', function(done) {
     var obj = new Parse.Object('BeforeSaveFail');
     obj.set('foo', 'bar');

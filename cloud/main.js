@@ -1,5 +1,17 @@
 var Parse = require('parse/node').Parse;
 
+// Alternatively, this could be a trigger for 'systemMailEvent' or something more abstract
+Parse.Cloud.requestPasswordReset(function(req) {
+    return Promise.resolve()
+    .then(() => {
+        var email = req.body.email;
+        var query = new Parse.Query("_User");
+        // Look up the user
+        // Use AWS SES or Mailgun to send an email
+        return { message: "A link was sent to your inbox."};
+    })
+});
+
 Parse.Cloud.define('hello', function(req, res) {
   res.success('Hello world!');
 });

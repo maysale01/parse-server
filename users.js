@@ -11,6 +11,7 @@ var PromiseRouter = require('./PromiseRouter');
 var rest = require('./rest');
 var RestWrite = require('./RestWrite');
 var deepcopy = require('deepcopy');
+var triggers = require('./triggers');
 
 var router = new PromiseRouter();
 
@@ -188,6 +189,14 @@ function handleUpdate(req) {
   });
 }
 
+function handlePasswordReset(req) {
+    // Maybe lookup a user here based off the params provided?
+    return Parse.Cloud.Triggers.requestPasswordReset(req)
+    .then((response) => {
+        return {response: response};
+    })
+}
+
 function notImplementedYet(req) {
   throw new Parse.Error(Parse.Error.COMMAND_UNAVAILABLE,
                         'This path is not implemented yet.');
@@ -202,6 +211,6 @@ router.route('PUT', '/users/:objectId', handleUpdate);
 router.route('GET', '/users', handleFind);
 router.route('DELETE', '/users/:objectId', handleDelete);
 
-router.route('POST', '/requestPasswordReset', notImplementedYet);
+router.route('POST', '/requestPasswordReset', handlePasswordReset);
 
 module.exports = router;
