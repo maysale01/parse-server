@@ -1,3 +1,6 @@
+"use strict";
+require("babel-polyfill");
+
 // This file contains helpers for running operations in REST format.
 // The goal is that handlers that explicitly handle an express route
 // should just be shallow wrappers around things in this file, but
@@ -20,7 +23,7 @@ export default class RestClient {
     }
 
     // Returns a promise that doesn't resolve to any useful value.
-    static del(config, auth, className, objectId, cache) {
+    static async del(config, auth, className, objectId, cache) {
         if (typeof objectId !== 'string') {
             throw new Parse.Error(Parse.Error.INVALID_JSON, 'bad objectId');
         }
@@ -33,41 +36,40 @@ export default class RestClient {
 
         let inflatedObject;
 
-        return Promise.resolve()
-        .then(() => {
-            // Make sure that you do not catch any exceptions throw in this promise chain.. 
-            // they need to propagate so that the lifecycle hooks will effectively cancel a transaction.
-            if (triggers.getTrigger(className, 'beforeDelete') ||
-            triggers.getTrigger(className, 'afterDelete') ||
+        // Run the beforeDelete or afterDelete triggers
+        if (triggers.getTrigger(className, 'beforeDelete') || 
+            triggers.getTrigger(className, 'afterDelete') || 
             className == '_Session') {
-                return RestClient.find(config, auth, className, {objectId: objectId})
-                .then((response) => {
-                      if (response && response.results && response.results.length) {
-                          response.results[0].className = className;
-                          cache.clearUser(response.results[0].sessionToken);
-                          inflatedObject = Parse.Object.fromJSON(response.results[0]);
-                          return triggers.maybeRunTrigger('beforeDelete', auth, inflatedObject);
-                      }
-                      throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `[RestClient: ${className}]: Object not found for delete.`);
-                })
-            }
-            return Promise.resolve({});
-        }).then(() => {
-            let options = {};
-            if (!auth.isMaster) {
-                options.acl = ['*'];
-                if (auth.user) {
-                    options.acl.push(auth.user.id);
-                }
-            }
+            let response = await RestClient.find(config, auth, className, {objectId: objectId});
+            if (response && response.results && response.results.length) {
+                response.results[0].className = className;
+                inflatedObject = Parse.Object.fromJSON(response.results[0]);
 
-            return config.database.destroy(className, {
-                objectId: objectId
-            }, options);
-        }).then(() => {
-            triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
-            return Promise.resolve();
-        });
+                cache.deleteUser(response.results[0].sessionToken);
+                // Run the trigger
+                try {
+                    await triggers.maybeRunTrigger('beforeDelete', auth, inflatedObject);
+                } catch (error) {
+                    console.error('BeforeDelete threw an error, should abort the transaction..', error);
+                    throw error;
+                }
+            } else {
+                throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `[RestClient: ${className}]: Object not found for delete.`);
+            }
+        }
+
+        let options = {};
+        if (!auth.isMaster) {
+            options.acl = ['*'];
+            if (auth.user) {
+                options.acl.push(auth.user.id);
+            }
+        }
+
+        await config.database.destroy(className, { objectId: objectId }, options);
+        await triggers.maybeRunTrigger('afterDelete', auth, inflatedObject);
+
+        return Promise.resolve();
     }
 
     // Returns a promise for a {response, status, location} object.
@@ -80,25 +82,24 @@ export default class RestClient {
     // Returns a promise that contains the fields of the update that the
     // REST API is supposed to return.
     // Usually, this is just updatedAt.
-    static update(config, auth, className, objectId, restObject) {
+    static async update(config, auth, className, objectId, restObject) {
         RestClient.enforceRoleSecurity('update', className, auth);
 
-        return Promise.resolve().then(() => {
-            if (triggers.getTrigger(className, 'beforeSave') ||
-            triggers.getTrigger(className, 'afterSave')) {
-                return RestClient.find(config, auth, className, {objectId: objectId});
-            }
-            return Promise.resolve({});
-        }).then((response) => {
-            let originalRestObject;
-            if (response && response.results && response.results.length) {
-                originalRestObject = response.results[0];
-            }
+        let response;
+        let originalRestObject;
 
-            let write = new RestWrite(config, auth, className,
-                                  {objectId: objectId}, restObject, originalRestObject);
-            return write.execute();
-        });
+        // Get the data for the object
+        if (triggers.getTrigger(className, 'beforeSave') ||
+            triggers.getTrigger(className, 'afterSave')) {
+            response = await RestClient.find(config, auth, className, {objectId: objectId});
+        }
+
+        if (response && response.results && response.results.length) {
+            originalRestObject = response.results[0];
+        }
+
+        let write = new RestWrite(config, auth, className, {objectId: objectId}, restObject, originalRestObject);
+        return write.execute();
     }
 
     // Disallowing access to the _Role collection except by master key

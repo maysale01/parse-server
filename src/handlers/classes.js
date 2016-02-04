@@ -8,7 +8,7 @@ import { rest} from '../utils';
 const router = new PromiseRouter();
 
 // Returns a promise that resolves to a {response} object.
-export function handleFind(req) {
+export async function handleFind(req) {
     let body = Object.assign(req.body, req.query);
     let options = {};
     if (body.skip) {
@@ -37,10 +37,8 @@ export function handleFind(req) {
         body.where = JSON.parse(body.where);
     }
 
-    return rest.find(req.config, req.auth, req.params.className, body.where, options)
-    .then((response) => {
-        return {response: response};
-    });
+    let response = await rest.find(req.config, req.auth, req.params.className, body.where, options);
+    return {response: response};
 }
 
 // Returns a promise for a {status, response, location} object.
@@ -49,33 +47,26 @@ export function handleCreate(req) {
 }
 
 // Returns a promise for a {response} object.
-export function handleGet(req) {
-    return rest.find(req.config, req.auth, req.params.className, {objectId: req.params.objectId})
-    .then((response) => {
-        if (!response.results || response.results.length == 0) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `[Classes:${req.params.className}]: Object not found.`);
-        } else {
-            return {response: response.results[0]};
-        }
-    });
+export async function handleGet(req) {
+    let response = await rest.find(req.config, req.auth, req.params.className, {objectId: req.params.objectId});
+    if (!response.results || response.results.length == 0) {
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, `[Classes:${req.params.className}]: Object not found.`);
+    } else {
+        return {response: response.results[0]};
+    }
 }
 
 // Returns a promise for a {response} object.
-export function handleDelete(req) {
-    const Server = req.Parse.Server;
-    const cache = Server.getCacheProvider().cache;
-    return rest.del(req.config, req.auth, req.params.className, req.params.objectId, cache)
-    .then(() => {
-        return {response: {}};
-    });
+export async function handleDelete(req) {
+    const cache = req.Parse.Server.getCacheProvider().getCache();
+    await rest.del(req.config, req.auth, req.params.className, req.params.objectId, cache);
+    return {response: {}};
 }
 
 // Returns a promise for a {response} object.
-export function handleUpdate(req) {
-    return rest.update(req.config, req.auth, req.params.className, req.params.objectId, req.body)
-    .then((response) => {
-        return {response: response};
-    });
+export async function handleUpdate(req) {
+    await rest.update(req.config, req.auth, req.params.className, req.params.objectId, req.body);
+    return {response: {}};
 }
 
 router.route('GET', '/classes/:className', handleFind);

@@ -1,10 +1,13 @@
+"use strict";
+require("babel-polyfill");
+
 /* Externals */
 import express          from 'express';
 import multer           from 'multer';
 import request          from 'request';
 import bodyParser       from 'body-parser';
 import { Parse }        from 'parse/node';
-
+import morgan           from 'morgan';
 import { addParseCloud } from './utils';
 import * as middlewares from './middlewares';
 import * as handlers from './handlers';
@@ -20,25 +23,9 @@ import {
 addParseCloud();
 
 export function initParseServer(args = {}) {
-    const server = new ParseServer(args);
-
-    // TODO: Make this handle multiple apps passed in via args.apps
-    let newParseApp = new ParseApp(args);
-    newParseApp.database = server.getDatabaseProvider().getDatabaseConnection(newParseApp.applicationId, newParseApp.collectionPrefix);
-    
-    // To maintain compatibility. TODO: Remove in v2.1
-    if (process.env.FACEBOOK_APP_ID) {
-        newParseApp['facebookAppIds'].push(process.env.FACEBOOK_APP_ID);
-    }
-
-    server.registerApp(newParseApp.applicationId, newParseApp);
-
-    // TODO: Move this to the ParseApp class and scope the global for each application
-    // Initialize the node client SDK automatically
-    Parse.initialize(args.appId || args.applicationId, args.javascriptKey || '', args.masterKey);
-
     const app = express();
     const router = new PromiseRouter();
+    const server = new ParseServer(args);
 
     // Allow handlers to access the server and apps
     app.use(function(req, res, next) {
@@ -54,7 +41,7 @@ export function initParseServer(args = {}) {
         Server: server
     });
 
-    // app.use(morgan('combined'));
+    app.use(morgan(':req[header] :method :url'));
 
     // File handling needs to be before default middlewares are applied
     app.use('/', handlers.files);
@@ -66,6 +53,12 @@ export function initParseServer(args = {}) {
     }
 
     app.use(bodyParser.json({ 'type': '*/*' }));
+
+    app.use(function(req, res, next) {
+        //console.log(req.body);
+        next();
+    });
+
     app.use(middlewares.allowCrossDomain);
     app.use(middlewares.allowMethodOverride);
     app.use(middlewares.handleParseHeaders);

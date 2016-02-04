@@ -77,8 +77,8 @@ class Auth {
     }
 
     // Returns a promise that resolves to an Auth object
-    static getAuthForSessionToken(cache, config, sessionToken) {
-        let cachedUser = cache.getUser(sessionToken);
+    static async getAuthForSessionToken(cache, config, sessionToken) {
+        let cachedUser = await cache.getUser(sessionToken);
         if (cachedUser) {
             return Promise.resolve(new Auth(config, false, cachedUser));
         }
@@ -89,19 +89,17 @@ class Auth {
         let restWhere = {
             _session_token: sessionToken
         };
-        let query = new RestQuery(config, Auth.master(config), '_Session', restWhere, restOptions);
-        return query.execute().then((response) => {
-            let results = response.results;
-            if (results.length !== 1 || !results[0]['user']) {
-                return Auth.nobody(config);
-            }
-            let obj = results[0]['user'];
-            delete obj.password;
-            obj['className'] = '_User';
-            let userObject = Parse.Object.fromJSON(obj);
-            cache.setUser(sessionToken, userObject);
-            return new Auth(config, false, userObject);
-        });
+        let response = await (new RestQuery(config, Auth.master(config), '_Session', restWhere, restOptions)).execute();
+        let results = response.results;
+        if (results.length !== 1 || !results[0]['user']) {
+            return Auth.nobody(config);
+        }
+        let obj = results[0]['user'];
+        delete obj.password;
+        obj['className'] = '_User';
+        let userObject = Parse.Object.fromJSON(obj);
+        cache.setUser(sessionToken, userObject);
+        return Promise.resolve(new Auth(config, false, userObject));
     };
 
     // TODO: Can't seem to find where user would get set.

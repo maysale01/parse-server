@@ -1,4 +1,5 @@
-// files.js
+"use strict";
+require("babel-polyfill");
 
 import express from 'express';
 import bodyParser from 'body-parser';
@@ -14,7 +15,7 @@ const logError = new Debug('parse-server:errors:handlers/files');
 const router = express.Router();
 const rack = hat.rack();
 
-export function processCreate(req, res, next) {
+export async function processCreate(req, res, next) {
     const Server = req.Parse.Server;
 
     if (!req.body || !req.body.length) {
@@ -43,40 +44,36 @@ export function processCreate(req, res, next) {
 
     let filename = rack() + '_' + req.params.filename + extension;
 
-    Server
-    .getFilesProvider()
-    .getAdapter()
-    .create(req.config, filename, req.body)
-    .then(() => {
+    try {
+        await Server.getFilesProvider().getAdapter().create(req.config, filename, req.body)
         res.status(201);
         let location = Server.getFilesProvider().getAdapter().location(req.config, req, filename);
         res.set('Location', location);
         res.json({ url: location, name: filename });
-    }).catch((error) => {
-        console.error(error, error.stack);
+    } 
+    catch (error) {
+        console.error(`[FilesHandler]: ${error}`, error.stack);
         next(new Parse.Error(Parse.Error.FILE_SAVE_ERROR, 'Could not store file.'));
-    });
+    }
 };
 
-export function processGet(req, res) {
+export async function processGet(req, res) {
     const Server = req.Parse.Server;
-    const app = Server.getCacheProvider().cache.getApp(req.params.applicationId);
+    const app = await Server.getCacheProvider().getCache().getApp(req.params.applicationId);
     const config = new Config({ app: app });
 
-    Server
-    .getFilesProvider()
-    .getAdapter()
-    .get(config, req.params.filename)
-    .then((data) => {
+    try {
+        let data = await Server.getFilesProvider().getAdapter().get(config, req.params.filename)
         res.status(200);
         let contentType = mime.lookup(req.params.filename);
         res.set('Content-type', contentType);
         res.end(data);
-    }).catch((error) => {
+    }
+    catch(error) {
         res.status(404);
         res.set('Content-type', 'text/plain');
         res.end('File not found.');
-    });
+    }
 };
 
 // Handle file retrieval

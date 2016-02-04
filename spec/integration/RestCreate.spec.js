@@ -3,11 +3,21 @@
 import request from 'request';
 import { Parse } from 'parse/node';
 import { rest } from '../../src/utils';
-import { Auth } from '../../src/classes';
+import { Auth, Config } from '../../src/classes';
 
-let config = Config;
+let config;
 
 describe('rest create', () => {
+
+    beforeEach(async (done) => {
+        const cache = Server.getCacheProvider().getCache();
+        const app = await cache.getApp('test', 'test_');
+        config = new Config({
+            app: app
+        });
+        done();
+    });
+
   it('handles _id', (done) => {
     rest.create(config, Auth.nobody(config), 'Foo', {})
     .then(() => {

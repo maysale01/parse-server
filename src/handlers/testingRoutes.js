@@ -1,4 +1,6 @@
-// testing-routes.js
+"use strict";
+require("babel-polyfill");
+
 import express from 'express';
 import * as middlewares from '../middlewares';
 import hat from 'hat';
@@ -10,7 +12,7 @@ const rack = hat.rack();
 // creates a unique app in the cache, with a collection prefix
 export function createApp(req, res) {
     const Server = req.Parse.Server;
-    const cache = Server.getCacheProvider().cache;
+    const cache = Server.getCacheProvider().getCache();
     const appId = rack();
 
     let args = {
@@ -19,9 +21,7 @@ export function createApp(req, res) {
         'masterKey': 'master'
     };
 
-    let newParseApp = new ParseApp(args);
-    newParseApp.database = Server.getDatabaseProvider().getDatabaseConnection(newParseApp.applicationId, newParseApp.collectionPrefix);
-    Server.registerApp(newParseApp.applicationId, newParseApp);
+    Server.createApp(args);
 
     const keys = {
         'application_id': appId,
@@ -36,28 +36,26 @@ export function createApp(req, res) {
 }
 
 // deletes all collections with the collectionPrefix of the app
-export function clearApp(req, res) {
+export async function clearApp(req, res) {
     if (!req.auth.isMaster) {
         return res.status(401).send({'error': 'unauthorized'});
     }
     
-    req.config.database.deleteEverything().then(() => {
-        res.status(200).send({});
-    });
+    await req.config.database.deleteEverything();
+    res.status(200).send({});
 }
 
 // deletes all collections and drops the app from cache
-export function dropApp(req, res) {
+export async function dropApp(req, res) {
     const Server = req.Parse.Server;
-    const cache = Server.getCacheProvider().cache;
+    const cache = Server.getCacheProvider().getCache();
     if (!req.auth.isMaster) {
         return res.status(401).send({'error': 'unauthorized'});
     }
 
-    req.config.database.deleteEverything().then(() => {
-        delete cache.apps[req.config.applicationId];
-        res.status(200).send({});
-    });
+    await req.config.database.deleteEverything();
+    await cache.deleteApp(req.config.applicationId);
+    res.status(200).send({});
 }
 
 // Lets just return a success response and see what happens.

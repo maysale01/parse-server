@@ -3,16 +3,12 @@ class CacheProvider {
         this._cache = cache;
     }
 
-    registerApp(applicationId, app) {
-        this._cache.registerApp(applicationId, app);
-    }
-
-    set cache(value) {
-        this._cache = value;
-    }
-
-    get cache() {
+    getCache() {
         return this._cache;
+    }
+
+    setCache(cache) {
+        this._cache = cache;
     }
 
 }

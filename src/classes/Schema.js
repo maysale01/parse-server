@@ -134,7 +134,7 @@ class Schema {
             return schema.validateClassName(className, true);
         }, (error) => {
             // The schema still doesn't validate. Give up
-            console.error(error);
+            console.error(`[Schema]: ${error}`, error.stack);
             throw new Parse.Error(Parse.Error.INVALID_JSON, 'schema class name does not revalidate');
         });
     }

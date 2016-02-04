@@ -244,6 +244,9 @@ describe('miscellaneous', function() {
       var objAgain = new Parse.Object('BeforeDeleteFail', {objectId: id});
       return objAgain.fetch();
     }).then((objAgain) => {
+        if (!objAgain) {
+            return fail();
+        }
       expect(objAgain.get('foo')).toEqual('bar');
       done();
     }, (error) => {

@@ -1,3 +1,7 @@
+"use strict";
+require("babel-polyfill");
+
+
 // An object that encapsulates everything we need to run a 'find'
 // operation, encoded in the REST API format.
 
@@ -196,28 +200,22 @@ class RestQuery {
     // Returns a promise for the response - an object with optional keys
     // 'results' and 'count'.
     // TODO: consolidate the replaceX functions
-    execute() {
-        return Promise.resolve().then(() => {
-            return this.getUserAndRoleACL();
-        }).then(() => {
-            return this.redirectClassNameForKey();
-        }).then(() => {
-            return this.replaceSelect();
-        }).then(() => {
-            return this.replaceDontSelect();
-        }).then(() => {
-            return this.replaceInQuery();
-        }).then(() => {
-            return this.replaceNotInQuery();
-        }).then(() => {
-            return this.runFind();
-        }).then(() => {
-            return this.runCount();
-        }).then(() => {
-            return this.handleInclude();
-        }).then(() => {
-            return this.response;
-        });
+    async execute() {
+        try {
+            await this.getUserAndRoleACL();
+            await this.redirectClassNameForKey();
+            await this.replaceSelect();
+            await this.replaceDontSelect();
+            await this.replaceInQuery();
+            await this.replaceNotInQuery();
+            await this.runFind();
+            await this.runCount();
+            await this.handleInclude();
+            return Promise.resolve(this.response);
+        }
+        catch(error) {
+            return Promise.reject(error);
+        }
     }
 
     // Uses the Auth object to get the list of roles, adds the user id

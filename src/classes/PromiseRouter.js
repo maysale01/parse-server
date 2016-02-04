@@ -140,43 +140,34 @@ class PromiseRouter {
 // Express handlers should never throw; if a promise handler throws we
 // just treat it like it resolved to an error.
 export function makeExpressHandler(promiseHandler) {
-    return function(req, res, next) {
+    return async function(req, res, next) {
         try {
             if (PromiseRouter.verbose) {
                 console.log(req.method, req.originalUrl, req.headers, JSON.stringify(req.body, null, 2));
             }
-            promiseHandler(req)
-            .then((result) => {
-                if (result && !result.response) {
-                    console.log('BUG: the handler did not include a "response" field');
-                    throw new Error('control should not get here');
-                } else if (!result) {
-                    console.log('BUG: the handler didnt return a result..');
-                    throw new Error('control should not get here');
-                }
 
-                if (PromiseRouter.verbose) {
-                    console.log('response:', JSON.stringify(result.response, null, 2));
-                }
-                let status = result.status || 200;
-                res.status(status);
-                if (result.location) {
-                    res.set('Location', result.location);
-                }
-                res.json(result.response);
-            }, (e) => {
-                if (PromiseRouter.verbose) {
-                    console.log('error:', e);
-                }
-                next(e);
-            }).catch((error) => {
-                next(error);
-            });
-        } catch (e) {
-            if (PromiseRouter.verbose) {
-                console.error(e, e.stack);
-                console.log('error:', e);
+            let result = await promiseHandler(req);
+
+            if (result && !result.response) {
+                console.log('BUG: the handler did not include a "response" field');
+                throw new Error('control should not get here');
+            } else if (!result) {
+                console.log('BUG: the handler didnt return a result..');
+                throw new Error('control should not get here');
             }
+
+            if (PromiseRouter.verbose) {
+                console.log('response:', JSON.stringify(result.response, null, 2));
+            }
+            let status = result.status || 200;
+            res.status(status);
+            if (result.location) {
+                res.set('Location', result.location);
+            }
+            console.log(result.response);
+            res.json(result.response);
+        } catch (e) {
+            console.error(`PromiseRouter: ${e.message}`, e.stack);
             next(e);
         }
     };

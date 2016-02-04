@@ -247,6 +247,9 @@ describe('Parse.ACL', () => {
                     equal(results.length, 1);
                     var result = results[0];
                     ok(result);
+                    if (!result) {
+                        return fail();
+                    }
                     equal(result.id, object.id);
                     equal(result.getACL().getReadAccess(user), true);
                     equal(result.getACL().getWriteAccess(user), true);
@@ -778,6 +781,9 @@ describe('Parse.ACL', () => {
                       success: function(results) {
                         equal(results.length, 1);
                         var result = results[0];
+                        if (!result) {
+                            return fail();
+                        }
                         ok(result);
                         equal(result.id, object.id);
                         done();

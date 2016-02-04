@@ -1,49 +1,57 @@
 import { default as CacheInterface } from '../interfaces/Cache';
 
+let instance = null;
+
 export default class MemoryCache extends CacheInterface {
-    constructor(args = {}) {
+    constructor() {
         super();
 
-        this._apps = Object.assign({}, args.apps);
-        this._stats = Object.assign({}, args.stats);
-        this._users = Object.assign({}, args.users);
-        this._isLoaded = false;
+        if (!instance) {
+            instance = this;
+            this._apps = new Map();
+            this._users = new Map();
+        }
+
+        return instance;
     }
 
-    get isLoaded() {
-        return this._isLoaded;
+    clear() {
+        this._apps = new Map();
+        this._users = new Map();
+        return Promise.resolve(this);
     }
 
-    set isLoaded(value) {
-        this._isLoaded = value;
+    getApp(key) {
+        return Promise.resolve(this._apps.get(key));
     }
 
-    // TODO: remove this.. backwards compatibility for the time being
-    get apps() {
-        return this._apps;
+    setApp(key, value) {
+        this._apps.set(key, value);
+        return Promise.resolve(this);
     }
 
-    registerApp(appId, app) {
-        this._apps[appId] = app;
+    hasApp(key) {
+        return Promise.resolve(this._apps.has(key));
     }
 
-    getApp(appId) {
-        return this._apps[appId];
+    deleteApp(key) {
+        return Promise.resolve(this._apps.delete(key));
     }
 
-    updateStat(key, value) {
-        this._stats[key] = value;
+    getUser(key) {
+        return Promise.resolve(this._users.get(key));
     }
 
-    getUser(sessionToken) {
-        return this._users[sessionToken];
+    setUser(key, value) {
+        this._users.set(key, value);
+        return Promise.resolve(this);
     }
 
-    setUser(sessionToken, userObject) {
-        this._users[sessionToken] = Object.assign({}, userObject);
+    hasUser(key) {
+        return Promise.resolve(this._users.has(key));
     }
 
-    clearUser(sessionToken) {
-        delete this._users[sessionToken];
+    deleteUser(key) {
+        return Promise.resolve(this._users.delete(key));
     }
 }

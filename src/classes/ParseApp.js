@@ -1,5 +1,8 @@
+import { addParseCloud } from '../utils';
+
 class ParseApp {
     constructor(args) {
+        
         // Backwards compatible
         if (args.appId && !args.applicationId) {
             args.applicationId = args.appId;
@@ -19,6 +22,11 @@ class ParseApp {
         this._fileKey = args.fileKey || 'invalid-file-key';
         this._facebookAppIds = args.facebookAppIds || [];
         this._database = args.database;
+
+        if (args.cloud) {
+            addParseCloud();
+            require(args.cloud);
+        }
     }
 
     get applicationId() {

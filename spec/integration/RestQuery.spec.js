@@ -3,12 +3,23 @@
 import request from 'request';
 import { Parse } from 'parse/node';
 import { rest } from '../../src/utils';
-import { Auth } from '../../src/classes';
+import { Auth, Config } from '../../src/classes';
 
-let config = Config;
-var nobody = Auth.nobody(config);
+let config;
+let nobody;
 
 describe('rest query', () => {
+
+    beforeEach(async (done) => {
+        const cache = Server.getCacheProvider().getCache();
+        const app = await cache.getApp('test', 'test_');
+        config = new Config({
+            app: app
+        });
+        nobody = Auth.nobody(config);
+        done();
+    });
+
   it('basic query', (done) => {
     rest.create(config, nobody, 'TestObject', {}).then(() => {
       return rest.find(config, nobody, 'TestObject', {});

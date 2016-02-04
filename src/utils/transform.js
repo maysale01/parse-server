@@ -139,8 +139,8 @@ export function transformKeyValue(schema, className, restKey, restValue, options
         return {key: key, value: value};
     }
 
-  // ACLs are handled before this method is called
-  // If an ACL key still exists here, something is wrong.
+    // ACLs are handled before this method is called
+    // If an ACL key still exists here, something is wrong.
     if (key === 'ACL') {
         throw 'There was a problem transforming an ACL.';
     }

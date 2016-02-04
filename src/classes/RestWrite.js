@@ -166,6 +166,8 @@ class RestWrite {
     // Validates this operation against the schema.
     validateSchema() {
         if (!this.config.database) {
+            console.log(this.config);
+            console.log(this.config._app);
             throw new Error('Database must be defined on the config!');
         }
         return this.config.database.validateObject(this.className, this.data);
@@ -679,7 +681,7 @@ class RestWrite {
         if (this.className === '_User' &&
         this.query &&
         !this.auth.couldUpdateUserId(this.query.objectId)) {
-            throw new Parse.Error(Parse.Error.SESSION_MISSING, 'cannot modify user ' + this.objectId);
+            throw new Parse.Error(Parse.Error.SESSION_MISSING, 'cannot modify user ' + this.query.objectId);
         }
 
         // TODO: Add better detection for ACL, ensuring a user can't be locked from

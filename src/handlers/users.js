@@ -15,7 +15,7 @@ export function handleCreate(req) {
 }
 
 // Returns a promise for a {response} object.
-export function handleLogIn(req) {
+export async function handleLogIn(req) {
     let user;
 
     // Use query parameters instead if provided in url
@@ -32,53 +32,50 @@ export function handleLogIn(req) {
     }
 
     // Make sure not to catch any errors from the promise chain, let them propagate.
-    return req.database.find('_User', {username: req.body.username})
-    .then((results) => {
-        if (!results.length) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[No results]: Invalid username/password.');
-        }
-        user = results[0];
-        return passwordCrypto.compare(req.body.password, user.password);
-    }).then((correct) => {
-        if (!correct) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[Bad creds]: Invalid username/password.');
-        }
-        let token = 'r:' + rack();
-        user.sessionToken = token;
-        delete user.password;
+    let results = await req.database.find('_User', {username: req.body.username})
 
-        let expiresAt = new Date();
-        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    if (!results.length) {
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[No results]: Invalid username/password.');
+    }
+    user = results[0];
+    let correct = await passwordCrypto.compare(req.body.password, user.password);
+    if (!correct) {
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[Bad creds]: Invalid username/password.');
+    }
 
-        let sessionData = {
-            sessionToken: token,
-            user: {
-                __type: 'Pointer',
-                className: '_User',
-                objectId: user.objectId
-            },
-            createdWith: {
-                'action': 'login',
-                'authProvider': 'password'
-            },
-            restricted: false,
-            expiresAt: Parse._encode(expiresAt)
-        };
+    let token = 'r:' + rack();
+    user.sessionToken = token;
+    delete user.password;
 
-        if (req.info.installationId) {
-            sessionData.installationId = req.info.installationId;
-        }
+    let expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-        let create = new RestWrite(req.config, Auth.master(req.config), '_Session', null, sessionData);
-        return create.execute();
-    }).then(() => {
-        return {response: user};
-    });
+    let sessionData = {
+        sessionToken: token,
+        user: {
+            __type: 'Pointer',
+            className: '_User',
+            objectId: user.objectId
+        },
+        createdWith: {
+            'action': 'login',
+            'authProvider': 'password'
+        },
+        restricted: false,
+        expiresAt: Parse._encode(expiresAt)
+    };
+
+    if (req.info.installationId) {
+        sessionData.installationId = req.info.installationId;
+    }
+
+    await (new RestWrite(req.config, Auth.master(req.config), '_Session', null, sessionData)).execute();
+    return {response: user};
 }
 
 // Returns a promise that resolves to a {response} object.
 // TODO: share code with classes.js
-export function handleFind(req) {
+export async function handleFind(req) {
     let options = {};
     if (req.body.skip) {
         options.skip = Number(req.body.skip);
@@ -109,56 +106,39 @@ export function handleFind(req) {
 }
 
 // Returns a promise for a {response} object.
-export function handleGet(req) {
-    return rest.find(req.config, req.auth, '_User', {objectId: req.params.objectId})
-    .then((response) => {
-        if (!response.results || response.results.length == 0) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
-        } else {
-            return {response: response.results[0]};
-        }
-    });
+export async function handleGet(req) {
+    let response = await rest.find(req.config, req.auth, '_User', {objectId: req.params.objectId})
+    if (!response.results || response.results.length == 0) {
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
+    } else {
+        return {response: response.results[0]};
+    }
 }
 
-export function handleMe(req) {
+export async function handleMe(req) {
     if (!req.info || !req.info.sessionToken) {
         throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '_User]: Object not found.');
     }
 
-    let promise = rest.find(
-        req.config, 
-        Auth.master(req.config), 
-        '_Session', 
-        { _session_token: req.info.sessionToken }, 
-        { include: 'user' }
-    );
-
-    return promise
-    .then((response) => {
-        if (!response.results || response.results.length == 0 ||
+    let response = await rest.find(req.config, Auth.master(req.config), '_Session', { _session_token: req.info.sessionToken }, { include: 'user' });
+    if (!response.results || response.results.length == 0 ||
         !response.results[0].user) {
-            throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
-        } else {
-            let user = response.results[0].user;
-            return {response: user};
-        }
-    });
+        throw new Parse.Error(Parse.Error.OBJECT_NOT_FOUND, '[_User]: Object not found.');
+    } else {
+        let user = response.results[0].user;
+        return {response: user};
+    }
 }
 
-export function handleDelete(req) {
-    const Server = req.Parse.Server;
-    const cache = Server.getCacheProvider().cache;
-    return rest.del(req.config, req.auth, req.params.className, req.params.objectId, cache)
-    .then(() => {
-        return {response: {}};
-    });
+export async function handleDelete(req) {
+    const cache = req.Parse.Server.getCacheProvider().getCache();
+    await rest.del(req.config, req.auth, req.params.className, req.params.objectId, cache)
+    return {response: {}};
 }
 
-export function handleUpdate(req) {
-    return rest.update(req.config, req.auth, '_User', req.params.objectId, req.body)
-    .then((response) => {
-        return {response: response};
-    });
+export async function handleUpdate(req) {
+    let response = await rest.update(req.config, req.auth, '_User', req.params.objectId, req.body)
+    return {response: response};
 }
 
 export function notImplementedYet(req) {

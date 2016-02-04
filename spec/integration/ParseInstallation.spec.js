@@ -2,13 +2,23 @@
 // Ported from installation_collection_test.go
 
 import { Parse } from 'parse/node';
-import { Auth } from '../../src/classes';
+import { Auth, Config } from '../../src/classes';
 import { rest } from '../../src/utils';
 
-var config = Config;
-var database = DatabaseAdapter;
+let config;
+const database = DatabaseAdapter;
 
 describe('Installations', () => {
+
+ 
+    beforeEach(async (done) => {
+        const cache = Server.getCacheProvider().getCache();
+        const app = await cache.getApp('test', 'test_');
+        config = new Config({
+            app: app
+        });
+        done();
+    });
 
   it('creates an android installation with ids', (done) => {
     var installId = '12345678-abcd-abcd-abcd-123456789abc';
