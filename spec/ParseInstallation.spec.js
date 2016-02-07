@@ -2,7 +2,6 @@
 // Ported from installation_collection_test.go
 
 var auth = require('../Auth');
-var cache = require('../cache');
 var Config = require('../Config');
 var DatabaseAdapter = require('../DatabaseAdapter');
 var Parse = require('parse/node').Parse;

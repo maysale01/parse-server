@@ -2,7 +2,6 @@
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 2000;
 
-var cache = require('../cache');
 var DatabaseAdapter = require('../DatabaseAdapter');
 var express = require('express');
 var facebook = require('../facebook');

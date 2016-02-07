@@ -1,6 +1,5 @@
 // These tests check the "find" functionality of the REST API.
 var auth = require('../Auth');
-var cache = require('../cache');
 var Config = require('../Config');
 var rest = require('../rest');
 
